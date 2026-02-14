@@ -14,11 +14,15 @@ return new class extends Migration
         Schema::create('profiles', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->string('avatar')->nullable();
-            $table->string('banner')->nullable();
+            $table->string('user_name')->nullable();
+            $table->string('profile_image')->nullable();
+            $table->string('bio')->nullable();
             $table->string('phone')->nullable();
-            $table->string('address')->nullable();
-
+            $table->enum('user_type', ['standard', 'verified', 'premium'])->nullable();
+            $table->string('pickup_location')->nullable();
+            $table->string('latitude')->nullable();
+            $table->string('longitude')->nullable();
+            $table->string('search_radius_km')->nullable();
             $table->timestamps();
         });
     }

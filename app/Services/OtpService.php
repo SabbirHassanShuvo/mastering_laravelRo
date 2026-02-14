@@ -25,13 +25,19 @@ class OtpService
     }
     public function generateOtp(string $key, int $ttl = null): string
     {
-        if(!is_null($ttl))
+        if (!is_null($ttl)) {
             $this->setTtl($ttl);
-        $otp = random_int(100000, 999999); // 6-digit OTP
-        if(!request()->is('api/*'))
+        }
+
+        $otp = random_int(1000, 9999); // 4-digit OTP
+
+        if (!request()->is('api/*')) {
             Cache::put($key, $otp, $ttl); // store in cache for $ttl seconds
-        return $otp;
+        }
+
+        return (string) $otp;
     }
+
 
     /**
      * Send OTP via email

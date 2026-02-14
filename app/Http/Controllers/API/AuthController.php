@@ -73,9 +73,9 @@ class AuthController extends BaseController
      * @return \Illuminate\Http\JsonResponse */
     public function profile()
     {
-        $success = auth('api')->user();
-   
-        return $this->sendResponse($success, 'Refresh token return successfully.');
+        $user = auth('api')->user()->load('profile');
+
+        return $this->sendResponse($user, 'User profile retrieved successfully.');
     }
   
     /** Log the user out (Invalidate the token).
@@ -126,7 +126,7 @@ class AuthController extends BaseController
             return jsonErrorResponse('No user found with this email address.', 404);
         }
 
-        // Generate a 6-digit reset token
+        // Generate a 4-digit reset token
         $otp = $this->otpService->generateOtp($request->email);
 
         // Store the token and expiry time in the database
@@ -222,36 +222,50 @@ class AuthController extends BaseController
         return jsonResponse(true, 'Password has been successfully reset.', 200);
     }
     
-   public function resendOtp()
-{
-    
-    $user = User::first();
+    public function resendOtp(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users,email',
+        ]);
 
-    if (!$user) {
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'User not found',
+                'data' => null
+            ], 404);
+        }
+
+        // Generate a 4-digit reset token
+        $otp = $this->otpService->generateOtp($request->email);
+
+        // Store the token and expiry time in the database
+        $user->password_reset_otp = $otp;
+        $user->password_reset_otp_is_verified = false;
+        $user->password_reset_otp_expiry = now()->addMinutes( $this->otpService->getTtl_min_time());  // Token expires after 5 minutes
+        $user->save();
+
+        // Send OTP email
+        $this->otpService->sendOtpEmail($request->email, $otp);
+
         return response()->json([
-            'status' => 'error',
-            'message' => 'User not found',
-            'data' => null
-        ], 404);
+            'status' => 'success',
+            'message' => 'OTP resent successfully',
+            'data' => [
+                'otp_expires_at' => $user->emailOtpExpiresAt,
+            ]
+        ], 200);
     }
-
-    // Generate new OTP
-    $otp = random_int(1000, 9999);
-    $user->emailOtp = $otp;
-    $user->emailOtpExpiresAt = now()->addMinutes(5);
-    $user->save();
-
-    // Send OTP to user's email
-    Mail::to($user->email)->send(new EmailOtpMail($otp));
-
-    return response()->json([
-        'status' => 'success',
-        'message' => 'OTP resent successfully and updated in database',
-        'data' => [
-            'otp_expires_at' => $user->emailOtpExpiresAt
-        ]
-    ], 200);
-}
 
 
     
