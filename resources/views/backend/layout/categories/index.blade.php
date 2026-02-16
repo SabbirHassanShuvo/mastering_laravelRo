@@ -138,16 +138,14 @@
             });
         }
 
-        // delete Confirm
+        // Delete Confirm Alert
         function showDeleteConfirm(id) {
-            event.preventDefault();
+
             Swal.fire({
-                title: 'Are you sure you want to delete ?',
-                text: 'If you delete this, it will be gone forever.',
+                title: 'Are you sure?',
+                text: 'This category will be permanently deleted.',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
                 confirmButtonText: 'Yes, delete it!',
             }).then((result) => {
                 if (result.isConfirmed) {
@@ -166,24 +164,33 @@
 
         // Delete Button
         function deleteItem(id) {
+
             let url = "{{ route('backend.feature.category.destroy', ':id') }}";
-            let csrfToken = '{{ csrf_token() }}';
+            let table = $('#datatable').DataTable();
+
             $.ajax({
-                type: "DELETE",
+                type: "POST", // change DELETE to POST
                 url: url.replace(':id', id),
-                headers: {
-                    'X-CSRF-TOKEN': csrfToken
+                data: {
+                    _method: "DELETE",
+                    _token: "{{ csrf_token() }}"
                 },
                 success: function(response) {
-                    $('#datatable').DataTable().ajax.reload();
-                    if (response['t-success']) {
-                        toastr.success(response[1]);
+
+                    if (response.success) {
+
+                        // reload without resetting pagination
+                        table.ajax.reload(null, false);
+
+                        toastr.success(response.message);
+
                     } else {
-                        toastr.error(response[1]);
+                        toastr.error('Delete failed');
                     }
                 },
-                error: function(error) {
-                    toastr.error('An error occurred. Please try again.');
+                error: function(xhr) {
+                    console.log(xhr.responseText);
+                    toastr.error('CSRF error or server problem');
                 }
             });
         }

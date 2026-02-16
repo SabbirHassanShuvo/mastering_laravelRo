@@ -1,8 +1,10 @@
 <!doctype html>
-<html lang="en" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg" data-sidebar-image="none">
+<html lang="en" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg"
+    data-sidebar-image="none">
 
 
 <!-- Mirrored from themesbrand.com/velzon/html/default/index.html by HTTrack Website Copier/3.x [XR&CO'2014], Thu, 25 Aug 2022 17:02:18 GMT -->
+
 <head>
 
     <meta charset="utf-8" />
@@ -10,6 +12,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta content="Premium Multipurpose Admin & Dashboard Template" name="description" />
     <meta content="Themesbrand" name="author" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     @stack('styles-top')
     @include('backend.partials.style')
     @stack('styles-bottom')
@@ -26,14 +29,14 @@
         <!-- Vertical Overlay-->
         <div class="vertical-overlay"></div>
         <div class="main-content">
-        <!-- ============================================================== -->
-        <!-- Start right Content here -->
-        <!-- ============================================================== -->
-     
+            <!-- ============================================================== -->
+            <!-- Start right Content here -->
+            <!-- ============================================================== -->
+
             <div class="page-content">
                 <div class="container-fluid">
                     @yield('content')
-                    
+
                 </div>
                 <!-- container-fluid -->
             </div>
@@ -54,4 +57,5 @@
 
 
 <!-- Mirrored from themesbrand.com/velzon/html/default/index.html by HTTrack Website Copier/3.x [XR&CO'2014], Thu, 25 Aug 2022 17:03:13 GMT -->
+
 </html>

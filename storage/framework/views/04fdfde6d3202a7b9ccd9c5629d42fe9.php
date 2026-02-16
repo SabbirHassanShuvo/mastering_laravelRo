@@ -1,25 +1,25 @@
 <?php $__env->startSection('title', 'System Users'); ?>
 
 <?php $__env->startSection('content'); ?>
-
-<div class="page-header">
-    <div>
-        <h1 class="page-title">List of System Users</h1>
+    
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">List of Users</h1>
+        </div>
+        <div class="ms-auto pageheader-btn">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="javascript:void(0);">Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Users</li>
+            </ol>
+        </div>
     </div>
-    <div class="ms-auto pageheader-btn">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="javascript:void(0);">Dashboard</a></li>
-            <li class="breadcrumb-item active" aria-current="page">System Users</li>
-        </ol>
-    </div>
-</div>
-
+    
 
     <div class="row">
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-                     <div class="d-flex justify-content-end mb-2">
+                    <div class="d-flex justify-content-end mb-2">
                         <a href="<?php echo e(route('backend.system-user.create')); ?>" class="btn btn-primary">+ Add User</a>
                     </div>
                     <div class="table-responsive">
@@ -34,7 +34,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                            
+                                
                             </tbody>
                         </table>
                     </div>
@@ -84,11 +84,11 @@
                     },
 
                     columns: [{
-                        data: 'DT_RowIndex',
-                        name: 'DT_RowIndex',
-                        orderable: false,
-                        searchable: false
-                    },
+                            data: 'DT_RowIndex',
+                            name: 'DT_RowIndex',
+                            orderable: false,
+                            searchable: false
+                        },
                         {
                             data: 'name',
                             name: 'name',
@@ -101,7 +101,7 @@
                             orderable: true,
                             searchable: true
                         },
-                        
+
                         {
                             data: 'status',
                             name: 'status',
@@ -151,7 +151,7 @@
                     _token: "<?php echo e(csrf_token()); ?>"
                 },
                 success: function(response) {
-                    console.log(response,response[0], response[1] );
+                    console.log(response, response[0], response[1]);
                     // Reloade DataTable
                     $('#datatable').DataTable().ajax.reload();
                     if (response.success === true) {
@@ -169,7 +169,7 @@
             });
         }
 
-       // delete Confirm
+        // delete Confirm
         function showDeleteConfirm(id) {
             event.preventDefault();
             Swal.fire({

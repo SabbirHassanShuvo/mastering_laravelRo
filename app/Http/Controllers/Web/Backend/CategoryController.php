@@ -101,13 +101,19 @@ class CategoryController extends Controller
 
     public function destroy(Category $category)
     {
-        if($category->image && file_exists(public_path($category->image))){
-            unlink(public_path($category->image));
-        }
+        // Delete image if exists
+        // if ($category->image && file_exists(public_path($category->image))) {
+        //     unlink(public_path($category->image));
+        // }
+
+        // Delete category
         $category->delete();
 
-        return redirect()->route('backend.feature.category.index')
-                         ->with('success','Category deleted successfully');
+        // Return JSON response for AJAX
+        return response()->json([
+            'success' => true,
+            'message' => 'Category deleted successfully'
+        ]);
     }
 
     public function status($id)

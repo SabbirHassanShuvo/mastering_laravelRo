@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Product;
 use Illuminate\Database\Eloquent\Model;
 
 class Category extends Model
@@ -14,5 +15,10 @@ class Category extends Model
             'ACTIVE'   => '1',
             'INACTIVE' => '0',
         ];
+    }
+
+    public function products()
+    {
+        return $this->hasMany(Product::class);
     }
 }

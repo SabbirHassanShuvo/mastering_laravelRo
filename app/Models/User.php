@@ -3,15 +3,16 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject; 
 
 
 use MatanYadaev\EloquentSpatial\Objects\Point;
 use MatanYadaev\EloquentSpatial\Objects\Polygon;
 use MatanYadaev\EloquentSpatial\Traits\HasSpatial;
+use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject; 
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -89,5 +90,10 @@ class User extends Authenticatable implements JWTSubject
 
     public function profile(){
         return $this->hasOne(Profile::class);
+    }
+
+    public function products()
+    {
+        return $this->hasMany(Product::class);
     }
 }
