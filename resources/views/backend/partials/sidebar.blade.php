@@ -57,6 +57,20 @@
                         <i class="ri-dashboard-2-line"></i> <span data-key="t-dashboards">Dashboards</span>
                     </a>
                 </li>
+
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ request()->routeIs('backend.system-user.*') ? 'active' : '' }}"
+                        href="{{ route('backend.system-user.index') }}">
+                        <i class="ri-group-line"></i> <span>Users</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ request()->routeIs('backend.feature.category.*') ? 'active' : '' }}"
+                        href="{{ route('backend.feature.category.index') }}">
+                        <i class="ri-dashboard-line"></i> <span>Categories</span>
+                    </a>
+                </li>
                 {{-- <li class="nav-item">
                     <a class="nav-link menu-link  {{ getPageStatus('backend.dashboard.*', 'collapsed active') }}"
                         href="#sidebarDashboards" role="button">
@@ -64,54 +78,7 @@
                     </a>
                 </li> --}}
                 <!-- end Dashboard Menu -->
-                <li class="nav-item">
-                    <!-- <a class="nav-link menu-link {{ getPageStatus('backend.feature.*', 'collapsed active') }}" href="#sidebarApps" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="sidebarApps"> -->
-                    <a class="nav-link menu-link {{ getPageStatus('backend.feature.*', 'collapsed active') }}"
-                        href="#sidebarApps" data-bs-toggle="collapse" role="button" aria-expanded="false"
-                        aria-controls="sidebarApps">
-                        <i class="ri-apps-2-line"></i> <span data-key="t-apps">Features</span>
-                    </a>
-                    <div class="collapse menu-dropdown {{ getPageStatus('backend.feature.*', 'show') }}"
-                        id="sidebarApps">
 
-                        <ul class="nav nav-sm flex-column">
-                            <li class="nav-item">
-                                <a href="#sidebarProjects" class="nav-link" role="button" aria-expanded="false"
-                                    aria-controls="sidebarProjects" data-key="t-projects">
-                                    Projects
-                                </a>
-
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('backend.feature.category.index') }}" class="nav-link" role="button"
-                                    aria-expanded="false" aria-controls="sidebarCategories" data-key="t-categories">
-                                    Categories
-                                </a>
-
-                            </li>
-                            <li class="nav-item">
-                                <a href="#sidebarTasks"
-                                    class="nav-link {{ getPageStatus('backend.feature.faq.*', 'active') }}"
-                                    data-bs-toggle="collapse" role="button" aria-expanded="false"
-                                    aria-controls="sidebarTasks" data-key="t-tasks">
-                                    FAQ
-                                </a>
-                                <div class="collapse menu-dropdown {{ getPageStatus('backend.feature.faq.*', 'show') }}"
-                                    id="sidebarTasks">
-                                    <ul class="nav nav-sm flex-column">
-                                        <li class="nav-item">
-                                            <a href="{{ route('backend.feature.faq.index') }}"
-                                                class="nav-link {{ getPageStatus('backend.feature.faq.*') }}"
-                                                data-key="t-list-view">
-                                                List View
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
 
                 <li class="menu-title"><i class="ri-more-fill"></i> <span data-key="t-pages">Pages</span></li>
 
@@ -136,12 +103,7 @@
                     </div>
                 </li>
                 <li class="menu-title"><span data-key="t-menu">Menu</span></li>
-                <li class="nav-item">
-                    <a class="nav-link menu-link {{ request()->routeIs('backend.system-user.*') ? 'active' : '' }}"
-                        href="{{ route('backend.system-user.index') }}">
-                        <i class="ri-dashboard-line"></i> <span>System Users</span>
-                    </a>
-                </li>
+
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ getPageStatus('backend.settings.*') }}" href="#sidebarMultilevel"
                         data-bs-toggle="collapse" role="button" aria-expanded="false"

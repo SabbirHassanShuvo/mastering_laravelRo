@@ -1,8 +1,7 @@
-@extends('backend.master')
-@section('title', 'Categories')
+<?php $__env->startSection('title', 'Categories'); ?>
 
-@section('content')
-    {{-- PAGE-HEADER --}}
+<?php $__env->startSection('content'); ?>
+    
     <div class="page-header">
         <div>
             <h1 class="page-title">categories</h1>
@@ -16,14 +15,14 @@
             </ol>
         </div>
     </div>
-    {{-- PAGE-HEADER --}}
+    
 
     <div class="row">
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex justify-content-end mb-2">
-                        <a href="{{ route('backend.feature.category.create') }}" class="btn btn-primary">+ Add Category</a>
+                        <a href="<?php echo e(route('backend.feature.category.create')); ?>" class="btn btn-primary">+ Add Category</a>
                     </div>
                     <div class="table-responsive">
                         <table id="datatable" class="table table-bordered dt-responsive nowrap">
@@ -32,7 +31,7 @@
                                     <th>#</th>
                                     <th>Title</th>
                                     <th>Slug</th>
-                                    {{-- <th>Image</th> --}}
+                                    
                                     <th>Status</th>
                                     <th>Action</th>
                                 </tr>
@@ -44,9 +43,9 @@
         </div>
     </div>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts-bottom')
+<?php $__env->startPush('scripts-bottom'); ?>
     <script>
         $(document).ready(function() {
 
@@ -58,7 +57,7 @@
             $('#datatable').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: "{{ route('backend.feature.category.index') }}",
+                ajax: "<?php echo e(route('backend.feature.category.index')); ?>",
                 columns: [{
                         data: 'DT_RowIndex',
                         name: 'DT_RowIndex'
@@ -112,12 +111,12 @@
         }
         // Status Change
         function statusChange(id) {
-            let url = "{{ route('backend.feature.category.status', ':id') }}";
+            let url = "<?php echo e(route('backend.feature.category.status', ':id')); ?>";
             $.ajax({
                 type: "POST",
                 url: url.replace(':id', id),
                 data: {
-                    _token: "{{ csrf_token() }}"
+                    _token: "<?php echo e(csrf_token()); ?>"
                 },
                 success: function(response) {
                     console.log(response, response[0], response[1]);
@@ -157,7 +156,7 @@
         }
 
         function edit(id) {
-            let url = "{{ route('backend.feature.category.edit', ':id') }}";
+            let url = "<?php echo e(route('backend.feature.category.edit', ':id')); ?>";
             url = url.replace(':id', id);
 
             window.location.href = url;
@@ -166,8 +165,8 @@
 
         // Delete Button
         function deleteItem(id) {
-            let url = "{{ route('backend.feature.category.destroy', ':id') }}";
-            let csrfToken = '{{ csrf_token() }}';
+            let url = "<?php echo e(route('backend.feature.category.destroy', ':id')); ?>";
+            let csrfToken = '<?php echo e(csrf_token()); ?>';
             $.ajax({
                 type: "DELETE",
                 url: url.replace(':id', id),
@@ -188,4 +187,6 @@
             });
         }
     </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('backend.master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\88013\Downloads\Sabbir\mastering_laravelRo\resources\views/backend/layout/categories/index.blade.php ENDPATH**/ ?>

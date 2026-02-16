@@ -20,11 +20,12 @@ Route::group([
     Route::post('/social/login', [SocialLoginController::class, 'SocialLogin']);
     
     Route::post('/password/forgot', [AuthController::class, 'forgotPassword']);
-    Route::post('/password/verify-otp', [AuthController::class, 'verifyOtp']);
     Route::post('/password/resend-otp', [AuthController::class, 'resendOtp']);   
+    Route::post('/password/verify-otp', [AuthController::class, 'verifyOtp']);
     Route::post('/password/reset', [AuthController::class, 'resetPassword']);
 });
 
 
+require_once __DIR__ .'/sabbirapi.php';
 require_once __DIR__ .'/frontend/dashboard.php';
 require_once __DIR__ .'/frontend/payments.php';

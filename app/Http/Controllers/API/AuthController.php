@@ -52,20 +52,26 @@ class AuthController extends BaseController
     public function login()
     {
         $credentials = request(['email', 'password']);
-  
+
         if (! $token = auth('api')->attempt($credentials)) {
             return $this->sendError('Unauthorised.', ['error'=>'Unauthorised']);
         }
-  
+
+        // Update last_login_at after successful login
+        $user = auth('api')->user();
+        $user->last_login_at = now();
+        $user->save();
+
         $token = $this->respondWithToken($token);
-        
+
         $response = [
             'success' => true, 
-            'token'    => $token,
-            'role' => auth('api')->user()->role,
+            'token'   => $token,
+            'role'    => $user->role,
             'message' => 'User login successfully.',
+            'last_login_at' => $user->last_login_at->format('Y-m-d H:i:s')
         ];
- 
+
         return response()->json($response, 200);
     }
   

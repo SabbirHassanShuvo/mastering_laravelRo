@@ -8,23 +8,11 @@ class Category extends Model
 {
     protected $guarded = ['id'];
 
-    public static function _types(){
+    public static function _status()
+    {
         return [
-            
-            'BREAKFAST' => 'breakfast',
-            'DINNER'=> 'dinner',
-        
+            'ACTIVE'   => '1',
+            'INACTIVE' => '0',
         ];
-    }
-
-    public static function _status(){
-        return [
-            'ACTIVE' => '1',
-            'INACTIVE'=> '0',
-        ];
-    }
-
-    public function parent(){
-        return $this->belongsTo(Category::class,'parent_id');
     }
 }
