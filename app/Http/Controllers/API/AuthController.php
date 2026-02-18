@@ -25,54 +25,90 @@ class AuthController extends BaseController
 
     /** Register a User.
      * @return \Illuminate\Http\JsonResponse */
-    public function register(Request $request) {
-
+    public function register(Request $request)
+    {
         $validator = Validator::make($request->all(), [
-            'name' => 'required',
-            'email' => 'required|email',
-            'password' => 'required',
-            'c_password' => 'required|same:password',
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:8'],
+        ], [
+            'name.required' => 'Your name is required.',
+            'email.required' => 'Email address is required.',
+            'email.email' => 'Please enter a valid email address.',
+            'email.unique' => 'This email is already registered.',
+            'password.required' => 'Password is required.',
+            'password.min' => 'Password must be at least 8 characters long.',
         ]);
-     
-        if($validator->fails()){
-            return $this->sendError('Validation Error.', $validator->errors());       
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please correct the errors below.',
+                'errors' => $validator->errors(),
+            ], 422);
         }
-     
-        $input = $request->all();
-        $input['password'] = bcrypt($input['password']);
-        $user = User::create($input);
-        $success['user'] =  $user;
-   
-        return $this->sendResponse($success, 'User register successfully.');
+
+        $user = new User();
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->password = bcrypt($request->password);
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Registration completed successfully.',
+            'data' => [
+                'user' => $user
+            ]
+        ], 201);
     }
+
   
   
     /** Get a JWT via given credentials.
      * @return \Illuminate\Http\JsonResponse */
-    public function login()
+    public function login(Request $request)
     {
-        $credentials = request(['email', 'password']);
+        // Validation rules
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'password' => 'required|string|min:6',
+        ]);
 
-        if (! $token = auth('api')->attempt($credentials)) {
-            return $this->sendError('Unauthorised.', ['error'=>'Unauthorised']);
+        // Check validation errors
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed.',
+                'errors'  => $validator->errors()
+            ], 422);
         }
 
-        // Update last_login_at after successful login
+        // Attempt login
+        $credentials = $request->only('email', 'password');
+
+        if (! $token = auth('api')->attempt($credentials)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid credentials. Please check your email and password.'
+            ], 401);
+        }
+
+        // Update last_login_at
         $user = auth('api')->user();
         $user->last_login_at = now();
         $user->save();
 
-        $token = $this->respondWithToken($token);
+        // Prepare token response
+        $tokenData = $this->respondWithToken($token);
 
-        $response = [
-            'success' => true, 
-            'token'   => $token,
+        return response()->json([
+            'success' => true,
+            'message' => 'User logged in successfully.',
+            'token'   => $tokenData,
             'role'    => $user->role,
-            'message' => 'User login successfully.',
             'last_login_at' => $user->last_login_at->format('Y-m-d H:i:s')
-        ];
-
-        return response()->json($response, 200);
+        ], 200);
     }
   
     /** Get the authenticated User.
@@ -190,43 +226,65 @@ class AuthController extends BaseController
         return jsonResponse(true, 'OTP verified successfully. You can now reset your password with in the next 5 mins.', 200);
     }
 
-    public function resetPassword(Request $request)
+   public function resetPassword(Request $request)
     {
+        // Step 1: Validate input
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
-            'password' => ['required','string', 'confirmed', new PasswordRule],
+            'password' => ['required', 'string', new PasswordRule],
         ]);
 
-        // Check if validation fails
         if ($validator->fails()) {
-            return jsonErrorResponse('Profile Update Validation failed', 422, $validator->errors()->toArray());
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed. Please check your input.',
+                'errors' => $validator->errors()->toArray()
+            ], 422);
         }
 
-        // Find the user by email
+        // Step 2: Find the user by email
         $user = User::where('email', $request->email)->first();
 
         if (!$user) {
-            return jsonErrorResponse('No user found with this email address.', 404);
+            return response()->json([
+                'success' => false,
+                'message' => 'No account found with this email address.'
+            ], 404);
         }
+
+        // Step 3: Check if OTP is verified
         if (!$user->password_reset_otp_is_verified) {
-            return jsonErrorResponse('Unauthorized attempt.', 401);
+            return response()->json([
+                'success' => false,
+                'message' => 'OTP not verified. Please complete the verification first.'
+            ], 401);
         }
-        // Check if OTP verification is done
+
+        // Step 4: Check if OTP exists and is valid
         if ($user->password_reset_otp === null || $user->password_reset_otp_expiry < now()) {
             $user->password_reset_otp_is_verified = false;
             $user->save();
-            return jsonErrorResponse('OTP verification failed or expired. Please request a new OTP.', 400);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'OTP expired or invalid. Please request a new OTP.'
+            ], 400);
         }
 
-        // If OTP is verified and not expired, proceed with password reset
-        $user->password = Hash::make($request->password); // Hash the new password
-        $user->password_reset_otp = null; // Clear the otp after password reset
-        $user->password_reset_otp_expiry = null; // Clear the expiry
+        // Step 5: Reset password
+        $user->password = Hash::make($request->password);
+        $user->password_reset_otp = null;
+        $user->password_reset_otp_expiry = null;
         $user->password_reset_otp_is_verified = false;
         $user->save();
 
-        return jsonResponse(true, 'Password has been successfully reset.', 200);
+        // Step 6: Return success response
+        return response()->json([
+            'success' => true,
+            'message' => 'Your password has been successfully reset.'
+        ], 200);
     }
+
     
     public function resendOtp(Request $request)
     {

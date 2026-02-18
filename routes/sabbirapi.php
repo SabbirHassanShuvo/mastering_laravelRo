@@ -17,6 +17,6 @@ Route::group([
     'prefix' => 'products'
 ], function ($router) {
     
-    Route::post('/products/store', [ProductsController::class, 'store']);
-    Route::get('/all/products', [ProductsController::class, 'index']);
+    Route::post('/store', [ProductsController::class, 'store']);
+    Route::get('/all-product', [ProductsController::class, 'index']);
 });
