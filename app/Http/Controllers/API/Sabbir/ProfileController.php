@@ -11,31 +11,38 @@ use Illuminate\Support\Facades\Validator;
 
 class ProfileController extends Controller
 {
-        public function profileRetrieval(Request $request)
-    {
-        try {
-            $user = auth()->user();
+     public function profileRetrieval(Request $request)
+{
+    $user = auth()->user();
 
-            // Latest assessment with both score and created_at
-            $latestAssessment = $user->assessments()->latest()->first();
-
-            $latestCreatedAt = $latestAssessment
-                ? Carbon::parse($latestAssessment->created_at)->format('d F Y, g:i A')
-                : null;
-
-            return jsonResponse(
-                true,
-                'User profile retrieved successfully.',
-                200,
-                $user->only(['id', 'name', 'email', 'avatar', 'address', 'phone', 'role','is_premium']) + [
-                    'ossd_score'      => optional($latestAssessment)->score,
-                    'ossd_created_at' => $latestCreatedAt,
-                ]
-            );
-        } catch (Exception $e) {
-            return jsonErrorResponse('Failed to retrieve user profile.', 500);
-        }
+    if (!$user) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Unauthorized.'
+        ], 401);
     }
+
+    $user->load(['products.photos', 'products.category']);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'User profile retrieved successfully.',
+        'data' => [
+            'user' => $user->only([
+                'id',
+                'name',
+                'email',
+                'avatar',
+                'address',
+                'phone',
+                'role',
+                'is_premium'
+            ]),
+            'posts' => $user->products
+        ]
+    ], 200);
+}
+
 
     
     public function profileUpdate(Request $request)

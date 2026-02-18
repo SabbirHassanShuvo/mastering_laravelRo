@@ -14,6 +14,8 @@ Route::group([
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:api');
     Route::post('/refresh', [AuthController::class, 'refresh'])->middleware('auth:api');
+
+    // Profile route protected by auth:api middleware
     Route::get('/profile', [AuthController::class, 'profile'])->middleware('auth:api');
 
     //Continue with google and facebook login

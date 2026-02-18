@@ -69,13 +69,11 @@ class AuthController extends BaseController
      * @return \Illuminate\Http\JsonResponse */
     public function login(Request $request)
     {
-        // Validation rules
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required|string|min:6',
         ]);
 
-        // Check validation errors
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
@@ -84,7 +82,6 @@ class AuthController extends BaseController
             ], 422);
         }
 
-        // Attempt login
         $credentials = $request->only('email', 'password');
 
         if (! $token = auth('api')->attempt($credentials)) {
@@ -94,22 +91,19 @@ class AuthController extends BaseController
             ], 401);
         }
 
-        // Update last_login_at
         $user = auth('api')->user();
         $user->last_login_at = now();
         $user->save();
 
-        // Prepare token response
-        $tokenData = $this->respondWithToken($token);
-
         return response()->json([
             'success' => true,
             'message' => 'User logged in successfully.',
-            'token'   => $tokenData,
+            'token'   => $token,
             'role'    => $user->role,
             'last_login_at' => $user->last_login_at->format('Y-m-d H:i:s')
         ], 200);
     }
+
   
     /** Get the authenticated User.
      * @return \Illuminate\Http\JsonResponse */
@@ -124,10 +118,16 @@ class AuthController extends BaseController
      * @return \Illuminate\Http\JsonResponse */
     public function logout()
     {
+        // Invalidate the token
         auth('api')->logout();
-        
-        return $this->sendResponse([], 'Successfully logged out.');
+
+        // Professional JSON response
+        return response()->json([
+            'status' => 'success',
+            'message' => 'User logged out successfully.'
+        ], 200);
     }
+
   
     /** Refresh a token.
      * @return \Illuminate\Http\JsonResponse */

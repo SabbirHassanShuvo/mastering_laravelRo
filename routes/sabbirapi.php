@@ -10,7 +10,7 @@ Route::group([
     'prefix' => 'profile'
 ], function ($router) {
     
-    Route::get('/profile', [ProfileController::class, 'profileRetrieval']);
+    Route::get('/get', [ProfileController::class, 'profileRetrieval']);
 });
 Route::group([
     'middleware' => 'auth:api',
@@ -19,4 +19,6 @@ Route::group([
     
     Route::post('/store', [ProductsController::class, 'store']);
     Route::get('/all-product', [ProductsController::class, 'index']);
+    Route::get('/{id}/edit', [ProductsController::class,'edit']);
+    Route::post('/update/{id}', [ProductsController::class,'update']);
 });

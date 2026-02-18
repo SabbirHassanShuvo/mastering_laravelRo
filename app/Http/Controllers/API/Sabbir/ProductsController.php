@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API\Sabbir;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class ProductsController extends Controller
@@ -68,6 +69,103 @@ class ProductsController extends Controller
         return response()->json($product->load('user','category','photos'),201);
     }
 
+    // Edit product (fetch single product)
+    public function edit($id)
+    {
+        $product = Product::with('photos','category')->findOrFail($id);
+
+        return response()->json($product);
+    }
+
+    // Update product professionally
+   // Update product with full image management
+    public function update(Request $request, $id)
+    {
+        $product = Product::with('photos')->find($id);
+
+        if (!$product) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Product not found.'
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'category_id' => 'required|exists:categories,id',
+            'title' => 'required|string|max:255',
+            'product_type' => 'required|in:paid,free,garage_sale',
+            'price' => 'nullable|numeric|min:0',
+            'condition_status' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'product_image' => 'nullable|image|max:2048',
+            'pickup_location' => 'nullable|string',
+            'pickup_latitude' => 'nullable|numeric',
+            'pickup_longitude' => 'nullable|numeric',
+            'photos.*' => 'nullable|image|max:2048'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed.',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $validated = $validator->validated();
+
+        // Update basic fields
+        $product->update([
+            'category_id' => $validated['category_id'],
+            'title' => $validated['title'],
+            'product_type' => $validated['product_type'],
+            'price' => $validated['price'] ?? null,
+            'condition_status' => $validated['condition_status'] ?? null,
+            'description' => $validated['description'] ?? null,
+            'pickup_location' => $validated['pickup_location'] ?? null,
+            'pickup_latitude' => $validated['pickup_latitude'] ?? null,
+            'pickup_longitude' => $validated['pickup_longitude'] ?? null,
+        ]);
+
+        // Handle main image replacement
+        if ($request->hasFile('product_image')) {
+            // Delete old main image from storage and database
+            if ($product->product_image && Storage::disk('public')->exists($product->product_image)) {
+                Storage::disk('public')->delete($product->product_image);
+            }
+            $product->product_image = $request->file('product_image')->store('products', 'public');
+            $product->save();
+        }
+
+        // Handle multiple photos replacement
+        if ($request->hasFile('photos')) {
+            // Delete old multiple photos from storage and database
+            foreach ($product->photos as $photo) {
+                if (Storage::disk('public')->exists($photo->photo_url)) {
+                    Storage::disk('public')->delete($photo->photo_url);
+                }
+                $photo->delete();
+            }
+
+            // Store new uploaded photos
+            foreach ($request->file('photos') as $photo) {
+                $path = $photo->store('product_photos', 'public');
+                $product->photos()->create([
+                    'photo_url' => $path,
+                    'uploaded_at' => now()
+                ]);
+            }
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Product updated successfully!',
+            'data' => $product->load('user', 'category', 'photos')
+        ], 200);
+    }
+
+
+
     // Archive product
     public function archive(Product $product){
         $product->status = Product::STATUS_ARCHIVED;
@@ -102,4 +200,7 @@ class ProductsController extends Controller
         elseif($request->status === 'archived') $query->archived();
         return response()->json($query->with('photos')->get());
     }
+
+
+
 }

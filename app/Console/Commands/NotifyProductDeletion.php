@@ -27,12 +27,22 @@ class NotifyProductDeletion extends Command
      */
     public function handle()
     {
-        Product::where('created_at','<=',now()->subDays(28))
-           ->where('status','!=',Product::STATUS_ARCHIVED)
-           ->get()
-           ->each(function($product){
-                $product->user->notify(new ProductDeletionNotice($product));
-           });
-    $this->info('Pre-delete notifications sent.');
+        // Product::where('created_at','<=',now()->subDays(28))
+        //    ->where('status','!=',Product::STATUS_ARCHIVED)
+        //    ->get()
+        //    ->each(function($product){
+        //         $product->user->notify(new ProductDeletionNotice($product));
+        //    });
+        // $this->info('Pre-delete notifications sent.');
+
+
+        Product::where('created_at', '<=', now()->subMinute(3))
+        ->where('status', '!=', Product::STATUS_ARCHIVED)
+        ->get()
+        ->each(function ($product) {
+            $product->user->notify(new ProductDeletionNotice($product));
+        });
+
+        $this->info('Pre-delete notifications sent.');
     }
 }
