@@ -26,42 +26,42 @@ class AuthController extends BaseController
     /** Register a User.
      * @return \Illuminate\Http\JsonResponse */
     public function register(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8'],
-        ], [
-            'name.required' => 'Your name is required.',
-            'email.required' => 'Email address is required.',
-            'email.email' => 'Please enter a valid email address.',
-            'email.unique' => 'This email is already registered.',
-            'password.required' => 'Password is required.',
-            'password.min' => 'Password must be at least 8 characters long.',
-        ]);
+{
+    $validator = Validator::make($request->all(), [
+        'name' => 'required',
+        'email' => 'required|email|unique:users,email',
+        'password' => 'required|min:6',
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Please correct the errors below.',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        $user = new User();
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->password = bcrypt($request->password);
-        $user->save();
-
+    if ($validator->fails()) {
         return response()->json([
-            'success' => true,
-            'message' => 'Registration completed successfully.',
-            'data' => [
-                'user' => $user
-            ]
-        ], 201);
+            'success' => false,
+            'message' => $validator->errors()->first()
+        ], 422);
     }
+
+    $user = new User();
+    $user->name = $request->name;
+    $user->email = $request->email;
+    $user->password = bcrypt($request->password);
+
+    // Optional fields
+    $user->latitude = $request->latitude;
+    $user->longitude = $request->longitude;
+
+    // Interests 
+    $user->interests = $request->interests;
+
+    $user->save();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Registration successful.',
+        'data' => [
+            'user' => $user
+        ]
+    ], 201);
+}
 
   
   
@@ -74,12 +74,19 @@ class AuthController extends BaseController
             'password' => 'required|string|min:6',
         ]);
 
+        // if ($validator->fails()) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'Validation failed.',
+        //         'errors'  => $validator->errors()
+        //     ], 422);
+        // }
+
         if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed.',
-                'errors'  => $validator->errors()
-            ], 422);
+        return response()->json([
+            'success' => false,
+            'message' => $validator->errors()->first(),
+        ], 422);
         }
 
         $credentials = $request->only('email', 'password');
@@ -150,189 +157,253 @@ class AuthController extends BaseController
         ];
     }
 
+    // public function forgotPassword(Request $request)
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'email' => 'required|email',
+    //     ]);
+
+    //     // Check if validation fails
+    //     if ($validator->fails()) {
+    //         return jsonErrorResponse('Profile Update Validation failed', 422, $validator->errors()->toArray());
+    //     }
+
+    //     if ($validator->fails()) {
+    //     return response()->json([
+    //         'success' => false,
+    //         'message' => $validator->errors()->first(),
+    //     ], 422);
+    //     }
+
+    //     // Find user by email
+    //     $user = User::where('email', $request->email)->first();
+
+    //     if (!$user) {
+    //         return jsonErrorResponse('No user found with this email address.', 404);
+    //     }
+
+    //     // Generate a 4-digit reset token
+    //     $otp = $this->otpService->generateOtp($request->email);
+
+    //     // Store the token and expiry time in the database
+    //     $user->password_reset_otp = $otp;
+    //     $user->password_reset_otp_is_verified = false;
+    //     $user->password_reset_otp_expiry = now()->addMinutes( $this->otpService->getTtl_min_time());  // Token expires after 5 minutes
+    //     $user->save();
+
+    //     // Send token to the user's email (using Queue)
+    //     // Mail::to($user->email)->queue(new PasswordResetMail($token));
+    //     $this->otpService->sendOtpEmail($request->email, $otp);
+
+
+    //     return jsonResponse(true, 'Password reset OTP has been sent to your email.', 200, ['OTP' => $user->password_reset_token]);
+    // }
+
     public function forgotPassword(Request $request)
     {
+        // Simple validation
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
         ]);
 
-        // Check if validation fails
         if ($validator->fails()) {
-            return jsonErrorResponse('Profile Update Validation failed', 422, $validator->errors()->toArray());
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(), // first error only
+            ], 422);
         }
 
         // Find user by email
         $user = User::where('email', $request->email)->first();
-
         if (!$user) {
-            return jsonErrorResponse('No user found with this email address.', 404);
+            return response()->json([
+                'success' => false,
+                'message' => 'No user found with this email address.',
+            ], 404);
         }
 
-        // Generate a 4-digit reset token
+        // Generate a 4-digit OTP
         $otp = $this->otpService->generateOtp($request->email);
 
-        // Store the token and expiry time in the database
+        // Store OTP in DB
         $user->password_reset_otp = $otp;
         $user->password_reset_otp_is_verified = false;
-        $user->password_reset_otp_expiry = now()->addMinutes( $this->otpService->getTtl_min_time());  // Token expires after 5 minutes
+        $user->password_reset_otp_expiry = now()->addMinutes($this->otpService->getTtl_min_time());
         $user->save();
 
-        // Send token to the user's email (using Queue)
-        // Mail::to($user->email)->queue(new PasswordResetMail($token));
+        // Send OTP to user's email
         $this->otpService->sendOtpEmail($request->email, $otp);
 
-
-        return jsonResponse(true, 'Password reset OTP has been sent to your email.', 200, ['OTP' => $user->password_reset_token]);
+        // Response
+        return response()->json([
+            'success' => true,
+            'message' => 'Password reset OTP has been sent to your email.',
+        ], 200);
     }
+
 
     public function verifyOtp(Request $request)
     {
-
+        // Simple validation
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'otp' => 'required|string',
         ]);
 
-        // Check if validation fails
-        if ($validator->fails()) {
-            return jsonErrorResponse('Profile Update Validation failed', 422, $validator->errors()->toArray());
-        }
-
-        // Find the user by email
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user) {
-            return jsonErrorResponse('No user found with this email address.', 404);
-        }
-
-        // Check if the OTP matches
-        if ($user->password_reset_otp !== removeSpaces($request->otp)) {
-            return jsonErrorResponse('Invalid OTP.', 400);
-        }
-
-        if (!$user->password_reset_otp) {
-            return jsonErrorResponse('Unauthorizied OTP.', 401);
-        }
-
-        // Check if the OTP has expired
-        if ($user->password_reset_otp_expiry < now()) {
-            return jsonErrorResponse('OTP has expired.', 400);
-        }
-
-        $user->password_reset_otp_is_verified = true;
-        $user->password_reset_otp_expiry = now()->addMinutes(5);
-        $user->save(); 
-        // OTP is valid, proceed to allow password reset
-        return jsonResponse(true, 'OTP verified successfully. You can now reset your password with in the next 5 mins.', 200);
-    }
-
-   public function resetPassword(Request $request)
-    {
-        // Step 1: Validate input
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'password' => ['required', 'string', new PasswordRule],
-        ]);
-
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation failed. Please check your input.',
-                'errors' => $validator->errors()->toArray()
+                'message' => $validator->errors()->first(),
             ], 422);
         }
 
-        // Step 2: Find the user by email
+        // Find user by email
         $user = User::where('email', $request->email)->first();
-
         if (!$user) {
             return response()->json([
                 'success' => false,
-                'message' => 'No account found with this email address.'
+                'message' => 'No user found with this email address.',
             ], 404);
         }
 
-        // Step 3: Check if OTP is verified
-        if (!$user->password_reset_otp_is_verified) {
+        // Check if OTP exists
+        if (!$user->password_reset_otp) {
             return response()->json([
                 'success' => false,
-                'message' => 'OTP not verified. Please complete the verification first.'
+                'message' => 'Unauthorized OTP.',
             ], 401);
         }
 
-        // Step 4: Check if OTP exists and is valid
-        if ($user->password_reset_otp === null || $user->password_reset_otp_expiry < now()) {
-            $user->password_reset_otp_is_verified = false;
-            $user->save();
-
+        // Check if OTP expired
+        if ($user->password_reset_otp_expiry < now()) {
             return response()->json([
                 'success' => false,
-                'message' => 'OTP expired or invalid. Please request a new OTP.'
+                'message' => 'OTP has expired.',
             ], 400);
         }
 
-        // Step 5: Reset password
-        $user->password = Hash::make($request->password);
-        $user->password_reset_otp = null;
-        $user->password_reset_otp_expiry = null;
-        $user->password_reset_otp_is_verified = false;
+        // Check if OTP matches
+        if ($user->password_reset_otp !== removeSpaces($request->otp)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid OTP.',
+            ], 400);
+        }
+
+        // Mark OTP as verified & extend expiry
+        $user->password_reset_otp_is_verified = true;
+        $user->password_reset_otp_expiry = now()->addMinutes(5);
         $user->save();
 
-        // Step 6: Return success response
         return response()->json([
             'success' => true,
-            'message' => 'Your password has been successfully reset.'
+            'message' => 'OTP verified successfully. You can now reset your password within the next 5 minutes.',
         ], 200);
     }
 
-    
+
+    public function resetPassword(Request $request)
+{
+    // Step 1: Simple validation
+    $validator = Validator::make($request->all(), [
+        'email' => 'required|email',
+        'password' => ['required', 'string', new PasswordRule],
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'success' => false,
+            'message' => $validator->errors()->first(), // first error only
+        ], 422);
+    }
+
+    // Step 2: Find the user by email
+    $user = User::where('email', $request->email)->first();
+    if (!$user) {
+        return response()->json([
+            'success' => false,
+            'message' => 'No account found with this email address.',
+        ], 404);
+    }
+
+    // Step 3: Check if OTP is verified
+    if (!$user->password_reset_otp_is_verified) {
+        return response()->json([
+            'success' => false,
+            'message' => 'OTP not verified. Please complete verification first.',
+        ], 401);
+    }
+
+    // Step 4: Check if OTP exists and is valid
+    if (!$user->password_reset_otp || $user->password_reset_otp_expiry < now()) {
+        $user->password_reset_otp_is_verified = false;
+        $user->save();
+
+        return response()->json([
+            'success' => false,
+            'message' => 'OTP expired or invalid. Please request a new OTP.',
+        ], 400);
+    }
+
+    // Step 5: Reset password
+    $user->password = Hash::make($request->password);
+    $user->password_reset_otp = null;
+    $user->password_reset_otp_expiry = null;
+    $user->password_reset_otp_is_verified = false;
+    $user->save();
+
+    // Step 6: Return success
+    return response()->json([
+        'success' => true,
+        'message' => 'Your password has been successfully reset.',
+    ], 200);
+}
+
+
     public function resendOtp(Request $request)
     {
+        // Simple validation
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:users,email',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
+                'success' => false,
+                'message' => $validator->errors()->first(), // first error only
             ], 422);
         }
 
+        // Find user
         $user = User::where('email', $request->email)->first();
-
         if (!$user) {
             return response()->json([
-                'status' => 'error',
+                'success' => false,
                 'message' => 'User not found',
-                'data' => null
             ], 404);
         }
 
-        // Generate a 4-digit reset token
+        // Generate a 4-digit OTP
         $otp = $this->otpService->generateOtp($request->email);
 
-        // Store the token and expiry time in the database
+        // Save OTP in DB
         $user->password_reset_otp = $otp;
         $user->password_reset_otp_is_verified = false;
-        $user->password_reset_otp_expiry = now()->addMinutes( $this->otpService->getTtl_min_time());  // Token expires after 5 minutes
+        $user->password_reset_otp_expiry = now()->addMinutes($this->otpService->getTtl_min_time());
         $user->save();
 
         // Send OTP email
         $this->otpService->sendOtpEmail($request->email, $otp);
 
         return response()->json([
-            'status' => 'success',
+            'success' => true,
             'message' => 'OTP resent successfully',
             'data' => [
-                'otp_expires_at' => $user->emailOtpExpiresAt,
+                'otp_expires_at' => $user->password_reset_otp_expiry,
             ]
         ], 200);
     }
 
-
-    
     public function profileRetrieval(Request $request)
     {
         try {

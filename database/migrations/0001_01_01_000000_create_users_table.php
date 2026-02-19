@@ -25,9 +25,15 @@ return new class extends Migration
             $table->string('password_reset_otp_is_verified')->default(false);
             $table->boolean('is_verified')->default(false);
             $table->boolean('is_active')->default(true);
+
+            $table->string('latitude')->nullable();
+            $table->string('longitude')->nullable();
             
             $table->timestamp('password_reset_otp_expiry')->nullable();
             $table->timestamp('last_login_at')->nullable();
+
+            // Interests (JSON)
+            $table->json('interests')->nullable();
             // $table->geometry('location', subtype: 'point')->nullable();
             // $table->geometry('area', subtype: 'polygon')->nullable();
             $table->rememberToken();

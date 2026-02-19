@@ -25,8 +25,8 @@ return new class extends Migration
             $table->string('phone')->nullable();
             $table->enum('user_type', ['standard', 'verified', 'premium'])->nullable();
             $table->string('pickup_location')->nullable();
-            $table->string('latitude')->nullable();
-            $table->string('longitude')->nullable();
+            // $table->string('latitude')->nullable();
+            // $table->string('longitude')->nullable();
             $table->string('search_radius_km')->nullable();
             $table->timestamps();
         });

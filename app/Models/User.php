@@ -84,6 +84,7 @@ class User extends Authenticatable implements JWTSubject
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'interests' => 'array',   // JSON → array auto convert
             'location' => Point::class,
             'area' => Polygon::class,
         ];
