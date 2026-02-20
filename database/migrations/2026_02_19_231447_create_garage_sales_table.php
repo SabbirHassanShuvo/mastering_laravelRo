@@ -25,7 +25,7 @@ return new class extends Migration
             $table->decimal('posting_fee', 8,2)->default(2.99);
             $table->decimal('total_fee', 8,2)->default(2.99);
             $table->boolean('is_spotlighted')->default(false);
-            $table->enum('status', ['active', 'archived', 'deleted'])->default('active')->change();
+            $table->enum('status', ['active', 'expired', 'sold', 'archived'])->default('active');
             $table->dateTime('expires_at')->nullable();
             $table->timestamps();
         });

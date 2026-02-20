@@ -20,7 +20,11 @@ Artisan::command('inspire', function () {
         // // Daily delete old products
         // $schedule->command('products:delete-old')->daily();
 
+        // Daily check for garage sale status updates
+        // $schedule->command('app:garage-sale-time-rules')->daily();
+
         // Test run - every minute
         Schedule::command('app:expire-products')->everyMinute();
         Schedule::command('app:notify-product-deletion')->everyMinute();
         Schedule::command('app:delete-old-products')->everyMinute();
+        Schedule::command('app:garage-sale-time-rules')->everyMinute();
