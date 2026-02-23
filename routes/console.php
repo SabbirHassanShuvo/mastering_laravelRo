@@ -24,7 +24,5 @@ Artisan::command('inspire', function () {
         // $schedule->command('app:garage-sale-time-rules')->daily();
 
         // Test run - every minute
-        Schedule::command('app:expire-products')->everyMinute();
-        Schedule::command('app:notify-product-deletion')->everyMinute();
-        Schedule::command('app:delete-old-products')->everyMinute();
         Schedule::command('app:garage-sale-time-rules')->everyMinute();
+        Schedule::command('app:product-time-rules')->everyMinute();

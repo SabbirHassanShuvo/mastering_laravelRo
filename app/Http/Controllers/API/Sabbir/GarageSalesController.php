@@ -38,10 +38,15 @@ class GarageSalesController extends Controller
         $garage->description = $request->description ?? null;
         $garage->date = $request->date;
         $garage->pickup_location = $request->pickup_location;
-        $garage->sale_start_date = $request->sale_start_date;
-        $garage->sale_end_date = $request->sale_end_date;
-        // $garage->expires_at = Carbon::parse($request->sale_end_date)->addDays(7);
-        $garage->expires_at = Carbon::now()->addMinute(1);
+        // $garage->sale_start_date = $request->sale_start_date;
+        // $garage->sale_end_date = $request->sale_end_date;
+        // $garage->expires_at = Carbon::now()->addDays(7);
+
+        // testing dates (1 min expiry)
+        $garage->sale_start_date = now();
+        $garage->sale_end_date = Carbon::now()->addMinutes(1); // expire in 1 min
+        $garage->expires_at = Carbon::now()->addMinutes(1);    // 1 min expiry
+        
         $garage->posting_fee = $request->posting_fee ?? 2.99; // hardcoded default value
         $garage->total_fee = $request->total_fee ?? 0; // hardcoded default value
         $garage->status = $request->status ?? 'active'; // hardcoded default value
@@ -169,4 +174,31 @@ class GarageSalesController extends Controller
         ]);
     }
 
+    // Garage Sale Relist
+    public function relist(Request $request, $id)
+    {
+        $garage = GarageSale::where('user_id', auth()->id())->find($id);
+
+        if (!$garage) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Garage Sale not found'
+            ], 404);
+        }
+
+        $now = Carbon::now();
+
+        $garage->sale_start_date = $now;
+        $garage->sale_end_date = $now->copy()->addDays(7);   // 7 days active
+        $garage->expires_at = $now->copy()->addDays(7);      // expiry after 7 days
+        $garage->status = 'active';
+
+        $garage->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Garage Sale relisted for 1 week successfully',
+            'garage' => $garage->load('items.images')
+        ]);
+    }
 }
