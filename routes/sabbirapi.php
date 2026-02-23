@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::group(['middleware' => 'auth:api','prefix' => 'profile'], function ($router) {
     Route::get('/get', [ProfileController::class, 'profileRetrieval']);
+    Route::get('/notifications', [ProfileController::class, 'notifications']);
 });
 Route::group(['middleware' => 'auth:api','prefix' => 'products'], function ($router) {
     Route::post('/store', [ProductsController::class, 'store']);

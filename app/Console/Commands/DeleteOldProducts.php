@@ -26,11 +26,11 @@ class DeleteOldProducts extends Command
      */
     public function handle()
     {
-        // Product::where('created_at','<=',now()->subDays(30))->delete();
-        // $this->info('Old products deleted.');
-
-        Product::where('created_at', '<', now()->subMinute(1140))->delete();
+        Product::where('created_at','<=',now()->subDays(30))->delete();
         $this->info('Old products deleted.');
+
+        // Product::where('created_at', '<', now()->subMinute(4))->delete();
+        // $this->info('Old products deleted.');
 
     }
 }

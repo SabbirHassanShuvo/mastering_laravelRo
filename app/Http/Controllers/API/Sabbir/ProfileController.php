@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\Sabbir;
 
 use App\Http\Controllers\Controller;
+use App\Models\Product;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -188,4 +189,52 @@ class ProfileController extends Controller
 
         return jsonResponse(true, 'Password changed successfully', 200, $user->only(['name', 'email', 'avatar']));
     }
+
+public function notifications(Request $request)
+{
+    $user = auth()->user();
+
+    if (!$user) {
+        return response()->json([
+            'message' => 'Unauthenticated.'
+        ], 401);
+    }
+
+    $notifications = $user->notifications()
+        ->latest()
+        ->get()
+        ->map(function ($notification) {
+
+            $productData = null;
+
+            if (isset($notification->data['product_id'])) {
+                $product = Product::find($notification->data['product_id']);
+
+                if ($product) {
+                    // relation name change করা যাবে না, তাই map করে অন্য key তে পাঠাচ্ছি
+                    $productData = [
+                        'id' => $product->id,
+                        'name' => $product->name ?? null,
+                        'status' => $product->status ?? null,
+                        'images' => $product->photos->map(function($photo){
+                            return $photo->photo;
+                        }) // শুধু image path
+                    ];
+                }
+            }
+
+            return [
+                'id' => $notification->id,
+                'type' => $notification->type,
+                'data' => $notification->data,
+                'product' => $productData
+            ];
+        });
+
+    return response()->json([
+        'success' => true,
+        'notifications' => $notifications
+    ]);
+}
+
 }

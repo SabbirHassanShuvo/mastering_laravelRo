@@ -14,7 +14,7 @@ class GarageSale extends Model
     protected $fillable = [
         'user_id','event_title','description','date','pickup_location',
         'latitude','longitude','sale_start_date','sale_end_date',
-        'status','posting_fee','total_fee','is_spotlighted','expires_at'
+        'status','posting_fee','total_fee','is_spotlighted','expires_at', 'notified_before_delete'
     ];
 
     protected $dates = ['expires_at','sale_start_date','sale_end_date'];

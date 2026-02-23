@@ -42,6 +42,8 @@ return new class extends Migration
             $table->timestamp('expires_at')->nullable();
             $table->timestamp('sold_at')->nullable();
 
+            $table->boolean('notified_before_delete')->default(false);
+
             // Spotlight
             $table->boolean('is_spotlighted')->default(false);
             $table->dateTime('spotlight_start_date')->nullable();

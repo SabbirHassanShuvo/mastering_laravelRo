@@ -28,5 +28,10 @@ class ExpireProducts extends Command
     {
         Product::active()->where('expires_at','<',now())->update(['status'=>Product::STATUS_EXPIRED]);
         $this->info('Expired products updated successfully.');
+
+
+        // Product::active()
+        //     ->where('expires_at', '<=', now()->addMinute(1))
+        //     ->update(['status' => Product::STATUS_EXPIRED]);
     }
 }
