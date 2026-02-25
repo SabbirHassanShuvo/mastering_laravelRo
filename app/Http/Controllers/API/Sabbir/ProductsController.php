@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\Sabbir;
 
 use App\Http\Controllers\Controller;
+use App\Models\ArchivedProduct;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
@@ -28,7 +29,8 @@ class ProductsController extends Controller
             'product_image' => 'nullable|image|max:2048',
             'pickup_location' => 'nullable|string',
             'pickup_latitude' => 'nullable|numeric',
-            'pickup_longitude' => 'nullable|numeric'
+            'pickup_longitude' => 'nullable|numeric',
+            'is_urgent' => 'nullable|boolean',
         ]);
 
         // Expiry Logic
@@ -65,6 +67,11 @@ class ProductsController extends Controller
         $product->posted_at = now();
         $product->expires_at = $expiresAt;
 
+        // Urgent / Same-Day Pickup
+        $product->is_urgent = $validated['is_urgent'] ?? false;
+        $product->urgent_pickup_date = $product->is_urgent ? now()->toDateString() : null;
+        $product->urgent_pickup_notes = $request->input('urgent_pickup_notes');
+
         if ($request->hasFile('product_image')) {
             $product->product_image = $request->file('product_image')->store('products', 'public');
         }
@@ -97,18 +104,8 @@ class ProductsController extends Controller
     }
 
     // Update product professionally
-   // Update product with full image management
-    public function update(Request $request, $id)
+   public function update(Request $request, $id)
     {
-        $product = Product::with('photos')->find($id);
-
-        if (!$product) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Product not found.'
-            ], 404);
-        }
-
         $validator = Validator::make($request->all(), [
             'category_id' => 'required|exists:categories,id',
             'title' => 'required|string|max:255',
@@ -120,7 +117,9 @@ class ProductsController extends Controller
             'pickup_location' => 'nullable|string',
             'pickup_latitude' => 'nullable|numeric',
             'pickup_longitude' => 'nullable|numeric',
-            'photos.*' => 'nullable|image|max:2048'
+            'is_urgent' => 'nullable|boolean',
+            'urgent_pickup_notes' => 'nullable|string|max:1000',
+            'photos.*' => 'nullable|image|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -133,32 +132,34 @@ class ProductsController extends Controller
 
         $validated = $validator->validated();
 
-        // Update basic fields
-        $product->update([
-            'category_id' => $validated['category_id'],
-            'title' => $validated['title'],
-            'product_type' => $validated['product_type'],
-            'price' => $validated['price'] ?? null,
-            'condition_status' => $validated['condition_status'] ?? null,
-            'description' => $validated['description'] ?? null,
-            'pickup_location' => $validated['pickup_location'] ?? null,
-            'pickup_latitude' => $validated['pickup_latitude'] ?? null,
-            'pickup_longitude' => $validated['pickup_longitude'] ?? null,
-        ]);
+        $product = Product::with('photos')->findOrFail($id);
 
-        // Handle main image replacement
+        // Basic fields update
+        $product->category_id = $validated['category_id'];
+        $product->title = $validated['title'];
+        $product->product_type = $validated['product_type'];
+        $product->price = $validated['price'] ?? $product->price;
+        $product->condition_status = $validated['condition_status'] ?? $product->condition_status;
+        $product->description = $validated['description'] ?? $product->description;
+        $product->pickup_location = $validated['pickup_location'] ?? $product->pickup_location;
+        $product->pickup_latitude = $validated['pickup_latitude'] ?? $product->pickup_latitude;
+        $product->pickup_longitude = $validated['pickup_longitude'] ?? $product->pickup_longitude;
+
+        // Urgent / Same-Day Pickup
+        $product->is_urgent = $validated['is_urgent'] ?? $product->is_urgent;
+        $product->urgent_pickup_date = $product->is_urgent ? now()->toDateString() : null;
+        $product->urgent_pickup_notes = $validated['urgent_pickup_notes'] ?? $product->urgent_pickup_notes;
+
+        // Main image replacement
         if ($request->hasFile('product_image')) {
-            // Delete old main image from storage and database
             if ($product->product_image && Storage::disk('public')->exists($product->product_image)) {
                 Storage::disk('public')->delete($product->product_image);
             }
             $product->product_image = $request->file('product_image')->store('products', 'public');
-            $product->save();
         }
 
-        // Handle multiple photos replacement
+        // Multiple photos replacement
         if ($request->hasFile('photos')) {
-            // Delete old multiple photos from storage and database
             foreach ($product->photos as $photo) {
                 if (Storage::disk('public')->exists($photo->photo_url)) {
                     Storage::disk('public')->delete($photo->photo_url);
@@ -166,7 +167,6 @@ class ProductsController extends Controller
                 $photo->delete();
             }
 
-            // Store new uploaded photos
             foreach ($request->file('photos') as $photo) {
                 $path = $photo->store('product_photos', 'public');
                 $product->photos()->create([
@@ -175,6 +175,8 @@ class ProductsController extends Controller
                 ]);
             }
         }
+
+        $product->save();
 
         return response()->json([
             'status' => 'success',
@@ -231,18 +233,42 @@ class ProductsController extends Controller
 
 
     // Archive product
-    public function archive(Product $product){
-        $product->status = Product::STATUS_ARCHIVED;
-        $product->save();
-        return response()->json(['message'=>'Product archived successfully']);
+    public function archive(Product $product)
+    {
+        ArchivedProduct::firstOrCreate([
+            'user_id' => auth()->id(),
+            'product_id' => $product->id,
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Product archived successfully'
+        ]);
     }
 
-    // Unarchive product (resets 7-day cycle)
-    public function unarchive(Product $product){
-        $product->status = Product::STATUS_ACTIVE;
-        $product->expires_at = now()->addDays(7);
-        $product->save();
-        return response()->json(['message'=>'Product unarchived and active']);
+    public function unarchive(Product $product)
+    {
+        ArchivedProduct::where('user_id', auth()->id())
+            ->where('product_id', $product->id)
+            ->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Product unarchived successfully'
+        ]);
+    }
+
+    public function myArchivedProducts()
+    {
+        $archives = ArchivedProduct::with('product.images')
+            ->where('user_id', auth()->id())
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'status' => true,
+            'data' => $archives
+        ]);
     }
 
     // Relist expired product (resets 7-day cycle)
@@ -282,7 +308,6 @@ class ProductsController extends Controller
         $query = Product::query();
         if($request->status === 'active') $query->where('status', Product::STATUS_ACTIVE);
         elseif($request->status === 'expired') $query->where('status', Product::STATUS_EXPIRED);
-        elseif($request->status === 'archived') $query->where('status', Product::STATUS_ARCHIVED);
         else return response()->json(['message'=>'Invalid status'], 400);
 
         $products = $query->with('photos','user','category')->get();

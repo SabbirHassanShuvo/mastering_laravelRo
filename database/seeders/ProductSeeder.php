@@ -37,7 +37,7 @@ class ProductSeeder extends Seeder
                 'user_id' => $users->random()->id,
                 'category_id' => $categories->random()->id,
                 'title' => 'Sample Product ' . $i,
-                'product_type' => collect(['paid', 'free', 'garage_sale'])->random(),
+                'product_type' => collect(['paid', 'free'])->random(),
                 'price' => rand(100, 5000),
                 'condition_status' => 'Used',
                 'description' => 'This is demo product description.',

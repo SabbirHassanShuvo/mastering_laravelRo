@@ -21,6 +21,13 @@ Route::group(['middleware' => 'auth:api','prefix' => 'products'], function ($rou
     Route::get('/listed-products-by-status', [ProductsController::class, 'productsByStatus']);
     Route::get('/search', [ProductsController::class, 'search']);
 
+    // Archiving routes
+     Route::post('/{product}/archive', [ProductsController::class, 'archive']);
+    
+    Route::post('/{product}/unarchive', [ProductsController::class, 'unarchive']);
+    
+    Route::get('/my-archived-products', [ProductsController::class, 'myArchivedProducts']);
+
 });
 Route::group(['middleware' => 'auth:api','prefix' => 'garage'], function ($router) {
     Route::post('/store', [GarageSalesController::class, 'store']);
@@ -30,5 +37,11 @@ Route::group(['middleware' => 'auth:api','prefix' => 'garage'], function ($route
 
     // Additional routes for garage sale management
     Route::post('/relist/{id}', [GarageSalesController::class, 'relist']);
+
+    // Archiving routes
+    Route::post('/archive/{garageId}', [GarageSalesController::class, 'archive']);
+    Route::post('/unarchive/{garageId}', [GarageSalesController::class, 'unarchive']);
+    Route::get('/allarchive', [GarageSalesController::class, 'index']);
+
 });
 

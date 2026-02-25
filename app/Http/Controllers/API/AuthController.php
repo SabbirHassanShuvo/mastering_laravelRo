@@ -116,9 +116,22 @@ class AuthController extends BaseController
      * @return \Illuminate\Http\JsonResponse */
     public function profile()
     {
-        $user = auth('api')->user()->load('profile');
+        $user = auth('api')->user();
 
-        return $this->sendResponse($user, 'User profile retrieved successfully.');
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated.'
+            ], 401);
+        }
+
+        $user->load('profile');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User profile retrieved successfully.',
+            'data' => $user
+        ], 200);
     }
   
     /** Log the user out (Invalidate the token).
@@ -303,61 +316,61 @@ class AuthController extends BaseController
 
 
     public function resetPassword(Request $request)
-{
-    // Step 1: Simple validation
-    $validator = Validator::make($request->all(), [
-        'email' => 'required|email',
-        'password' => ['required', 'string', new PasswordRule],
-    ]);
+    {
+        // Step 1: Simple validation
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'password' => ['required', 'string', new PasswordRule],
+        ]);
 
-    if ($validator->fails()) {
-        return response()->json([
-            'success' => false,
-            'message' => $validator->errors()->first(), // first error only
-        ], 422);
-    }
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(), // first error only
+            ], 422);
+        }
 
-    // Step 2: Find the user by email
-    $user = User::where('email', $request->email)->first();
-    if (!$user) {
-        return response()->json([
-            'success' => false,
-            'message' => 'No account found with this email address.',
-        ], 404);
-    }
+        // Step 2: Find the user by email
+        $user = User::where('email', $request->email)->first();
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No account found with this email address.',
+            ], 404);
+        }
 
-    // Step 3: Check if OTP is verified
-    if (!$user->password_reset_otp_is_verified) {
-        return response()->json([
-            'success' => false,
-            'message' => 'OTP not verified. Please complete verification first.',
-        ], 401);
-    }
+        // Step 3: Check if OTP is verified
+        if (!$user->password_reset_otp_is_verified) {
+            return response()->json([
+                'success' => false,
+                'message' => 'OTP not verified. Please complete verification first.',
+            ], 401);
+        }
 
-    // Step 4: Check if OTP exists and is valid
-    if (!$user->password_reset_otp || $user->password_reset_otp_expiry < now()) {
+        // Step 4: Check if OTP exists and is valid
+        if (!$user->password_reset_otp || $user->password_reset_otp_expiry < now()) {
+            $user->password_reset_otp_is_verified = false;
+            $user->save();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'OTP expired or invalid. Please request a new OTP.',
+            ], 400);
+        }
+
+        // Step 5: Reset password
+        $user->password = Hash::make($request->password);
+        $user->password_reset_otp = null;
+        $user->password_reset_otp_expiry = null;
         $user->password_reset_otp_is_verified = false;
         $user->save();
 
+        // Step 6: Return success
         return response()->json([
-            'success' => false,
-            'message' => 'OTP expired or invalid. Please request a new OTP.',
-        ], 400);
+            'success' => true,
+            'message' => 'Your password has been successfully reset.',
+        ], 200);
     }
-
-    // Step 5: Reset password
-    $user->password = Hash::make($request->password);
-    $user->password_reset_otp = null;
-    $user->password_reset_otp_expiry = null;
-    $user->password_reset_otp_is_verified = false;
-    $user->save();
-
-    // Step 6: Return success
-    return response()->json([
-        'success' => true,
-        'message' => 'Your password has been successfully reset.',
-    ], 200);
-}
 
 
     public function resendOtp(Request $request)
@@ -404,86 +417,85 @@ class AuthController extends BaseController
         ], 200);
     }
 
-    public function profileRetrieval(Request $request)
+    // public function profileRetrieval(Request $request)
+    // {
+    //     try {
+    //         $user = auth()->user();
+
+    //         // Latest assessment with both score and created_at
+    //         $latestAssessment = $user->assessments()->latest()->first();
+
+    //         $latestCreatedAt = $latestAssessment
+    //             ? Carbon::parse($latestAssessment->created_at)->format('d F Y, g:i A')
+    //             : null;
+
+    //         return jsonResponse(
+    //             true,
+    //             'User profile retrieved successfully.',
+    //             200,
+    //             $user->only(['id', 'name', 'email', 'avatar', 'address', 'phone', 'role','is_premium']) + [
+    //                 'ossd_score'      => optional($latestAssessment)->score,
+    //                 'ossd_created_at' => $latestCreatedAt,
+    //             ]
+    //         );
+    //     } catch (Exception $e) {
+    //         return jsonErrorResponse('Failed to retrieve user profile.', 500);
+    //     }
+    // }
+
+    public function profileUpdate(Request $request)
     {
-        try {
-            $user = auth()->user();
+        $user = auth('api')->user();
 
-            // Latest assessment with both score and created_at
-            $latestAssessment = $user->assessments()->latest()->first();
-
-            $latestCreatedAt = $latestAssessment
-                ? Carbon::parse($latestAssessment->created_at)->format('d F Y, g:i A')
-                : null;
-
-            return jsonResponse(
-                true,
-                'User profile retrieved successfully.',
-                200,
-                $user->only(['id', 'name', 'email', 'avatar', 'address', 'phone', 'role','is_premium']) + [
-                    'ossd_score'      => optional($latestAssessment)->score,
-                    'ossd_created_at' => $latestCreatedAt,
-                ]
-            );
-        } catch (Exception $e) {
-            return jsonErrorResponse('Failed to retrieve user profile.', 500);
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
         }
-    }
 
-     public function ProfileUpdate(Request $request)
-    {
-        $authenticatedUser = User::find(auth('api')->user()->id);
-
-        // Validation
-        $validator = Validator::make($request->all(), [
+        $validated = $request->validate([
             'name' => 'sometimes|nullable|string|max:255',
-            'email' => 'sometimes|nullable|email|max:255|unique:users,email,' . $authenticatedUser->id,
-            'avatar' => 'sometimes|nullable|image|mimes:jpg,jpeg,png,gif,svg,webp,ico,bmp,tiff|max:5120',
-            'address' => 'sometimes|nullable|string|max:255'
+            'avatar' => 'sometimes|nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'user_name' => 'sometimes|nullable|string|max:255',
+            'phone' => 'sometimes|nullable|string|max:20',
+            'bio' => 'sometimes|nullable|string|max:1000',
         ]);
 
-        if ($validator->fails()) {
-            return jsonErrorResponse(
-                'Profile Update Validation failed',
-                422,
-                $validator->errors()->toArray()
-            );
+        // Update user table
+        if (array_key_exists('name', $validated)) {
+            $user->update([
+                'name' => $validated['name']
+            ]);
         }
 
-        // Update only the fields that exist in request
-        if ($request->filled('name')) {
-            $authenticatedUser->name = $request->name;
-        }
+        // Get or create profile
+        $profile = $user->profile()->firstOrCreate([]);
 
-        if ($request->filled('email')) {
-            $authenticatedUser->email = $request->email;
-        }
+        // Update profile fields
+        $profile->fill([
+            'user_name' => $validated['user_name'] ?? $profile->user_name,
+            'phone'     => $validated['phone'] ?? $profile->phone,
+            'bio'       => $validated['bio'] ?? $profile->bio,
+        ]);
 
-        if ($request->filled('address')) {
-            $authenticatedUser->address = $request->address;
-        }
-
-        // Avatar handle
+        // Handle avatar upload
         if ($request->hasFile('avatar')) {
-            if ($authenticatedUser->avatar) {
-                fileDelete(public_path($authenticatedUser->avatar));
+
+            if ($profile->avatar && file_exists(public_path($profile->avatar))) {
+                unlink(public_path($profile->avatar));
             }
 
-            $avatar = $request->file('avatar');
-            $avatarName = $authenticatedUser->id . '_avatar';
-            $avatarPath = fileUpload($avatar, 'profile/avatar', $avatarName);
+            $path = $request->file('avatar')
+                            ->store('profile/avatar', 'public');
 
-            $authenticatedUser->avatar = $avatarPath;
+            $profile->avatar = 'storage/' . $path;
         }
 
-        $authenticatedUser->save();
+        $profile->save();
 
-        return jsonResponse(
-            true,
-            'Profile updated successfully',
-            200,
-            $authenticatedUser->only(['name', 'email', 'avatar', 'address'])
-        );
+        return response()->json([
+            'status'  => true,
+            'message' => 'Profile updated successfully',
+            'data'    => $user->load('profile')
+        ]);
     }
 
     public function ChangePassword(Request $request)

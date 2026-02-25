@@ -12,14 +12,15 @@ Route::group([
 ], function ($router) {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
-    Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:api');
-    Route::post('/refresh', [AuthController::class, 'refresh'])->middleware('auth:api');
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/refresh', [AuthController::class, 'refresh']);
 
     // Profile route protected by auth:api middleware
-    Route::get('/profile', [AuthController::class, 'profile'])->middleware('auth:api');
+    Route::get('/profile', [AuthController::class, 'profile']);
+    Route::post('/profile/update', [AuthController::class, 'profileUpdate']);
 
     //Continue with google and facebook login
-    Route::post('/social/login', [SocialLoginController::class, 'SocialLogin']);
+    // Route::post('/social/login', [SocialLoginController::class, 'SocialLogin']);
     
     Route::post('/password/forgot', [AuthController::class, 'forgotPassword']);
     Route::post('/password/resend-otp', [AuthController::class, 'resendOtp']);   

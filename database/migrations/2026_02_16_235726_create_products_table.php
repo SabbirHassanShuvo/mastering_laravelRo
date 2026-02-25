@@ -20,7 +20,7 @@ return new class extends Migration
 
             // Basic Info
             $table->string('title');
-            $table->enum('product_type', ['paid', 'free', 'garage_sale']);
+            $table->enum('product_type', ['paid', 'free']);
             $table->decimal('price', 10, 2)->nullable();
             $table->string('condition_status')->nullable();
             $table->text('description')->nullable();
@@ -44,6 +44,10 @@ return new class extends Migration
 
             $table->boolean('notified_before_delete')->default(false);
             $table->boolean('notified_before_expiry')->default(false);
+
+            $table->boolean('is_urgent')->default(false); // Urgent pickup flag
+            $table->date('urgent_pickup_date')->nullable();
+            $table->string('urgent_pickup_notes')->nullable(); // Extra notes for urgent pickup
 
             // Spotlight
             $table->boolean('is_spotlighted')->default(false);

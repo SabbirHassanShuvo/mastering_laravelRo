@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\GarageArchived;
 use App\Models\GarageItem;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -25,5 +26,10 @@ class GarageSale extends Model
 
     public function items() {
         return $this->hasMany(GarageItem::class);
+    }
+
+    public function archivedByUsers()
+    {
+        return $this->hasMany(GarageArchived::class);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\Sabbir;
 
 use App\Http\Controllers\Controller;
+use App\Models\GarageArchived;
 use App\Models\GarageSale;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -38,14 +39,14 @@ class GarageSalesController extends Controller
         $garage->description = $request->description ?? null;
         $garage->date = $request->date;
         $garage->pickup_location = $request->pickup_location;
-        // $garage->sale_start_date = $request->sale_start_date;
-        // $garage->sale_end_date = $request->sale_end_date;
-        // $garage->expires_at = Carbon::now()->addDays(7);
+        $garage->sale_start_date = $request->sale_start_date;
+        $garage->sale_end_date = $request->sale_end_date;
+        $garage->expires_at = Carbon::now()->addDays(7);
 
         // testing dates (1 min expiry)
-        $garage->sale_start_date = now();
-        $garage->sale_end_date = Carbon::now()->addMinutes(1); // expire in 1 min
-        $garage->expires_at = Carbon::now()->addMinutes(1);    // 1 min expiry
+        // $garage->sale_start_date = now();
+        // $garage->sale_end_date = Carbon::now()->addMinutes(1); // expire in 1 min
+        // $garage->expires_at = Carbon::now()->addMinutes(1);    // 1 min expiry
         
         $garage->posting_fee = $request->posting_fee ?? 2.99; // hardcoded default value
         $garage->total_fee = $request->total_fee ?? 0; // hardcoded default value
@@ -186,11 +187,19 @@ class GarageSalesController extends Controller
             ], 404);
         }
 
+        // Allow relist only if expired
+        if ($garage->status !== 'expired' && $garage->expires_at > Carbon::now()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Only expired garage sales can be relisted'
+            ], 400);
+        }
+
         $now = Carbon::now();
 
         $garage->sale_start_date = $now;
-        $garage->sale_end_date = $now->copy()->addDays(7);   // 7 days active
-        $garage->expires_at = $now->copy()->addDays(7);      // expiry after 7 days
+        $garage->sale_end_date = $now->copy()->addDays(7);
+        $garage->expires_at = $now->copy()->addDays(7);
         $garage->status = 'active';
 
         $garage->save();
@@ -201,4 +210,48 @@ class GarageSalesController extends Controller
             'garage' => $garage->load('items.images')
         ]);
     }
+
+    // Archive a garage
+    public function archive(Request $request, $garageId)
+    {
+        $archived = GarageArchived::firstOrCreate([
+            'user_id' => auth()->id(),
+            'garage_id' => $garageId
+        ]);
+
+        return response()->json([
+            'message' => 'Garage archived successfully',
+            'archived' => $archived
+        ]);
+    }
+
+    // Unarchive a garage
+    public function unarchive($garageId)
+    {
+        $archived = GarageArchived::where('user_id', auth()->id())
+            ->where('garage_id', $garageId)
+            ->first();
+
+        if ($archived) {
+            $archived->delete();
+            return response()->json([
+                'message' => 'Garage unarchived successfully'
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Garage not archived'
+        ], 404);
+    }
+
+    // Get all archived garages for the authenticated user
+    public function index()
+{
+    $archivedGarages = auth()->user()
+        ->archivedGarages()
+        ->with('garage.items.images')
+        ->get();
+
+    return response()->json($archivedGarages);
+}
 }
