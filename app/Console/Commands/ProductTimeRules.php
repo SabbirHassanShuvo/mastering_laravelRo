@@ -66,16 +66,16 @@ class ProductTimeRules extends Command
             $this->info("Notified user for product ID: {$product->id} (3 days before delete)");
         }
 
-        // // 3. Delete after 30 days
-        // $deletedCount = Product::where('created_at','<=',$now->copy()->subDays(30))->delete();
-        // $this->info("$deletedCount old products deleted.");
+        // 3. Delete after 30 days
+        $deletedCount = Product::where('created_at','<=',$now->copy()->subDays(30))->delete();
+        $this->info("$deletedCount old products deleted.");
 
 
         // Testing with minutes instead of days for quicker verification
 
         // $now = now();
 
-        // 0. 1 minute before expiry notification
+        // // 0. 1 minute before expiry notification
         // $productsToNotifyExpiry = Product::where('status', Product::STATUS_ACTIVE)
         //     ->where('notified_before_expiry', false)
         //     ->whereNotNull('expires_at')
@@ -89,13 +89,13 @@ class ProductTimeRules extends Command
         //     $this->info("Notified user for product ID: {$product->id} (1 min before expiry)");
         // }
 
-        // 1. Expire products
+        // // 1. Expire products
         // $expiredCount = Product::active()
         //     ->where('expires_at','<',$now)
         //     ->update(['status'=>Product::STATUS_EXPIRED]);
         // $this->info("$expiredCount products expired.");
 
-        // // 2. Notify 1 min before delete
+        // // // 2. Notify 1 min before delete
         // $productsToNotifyDelete = Product::where('status','!=', Product::STATUS_ARCHIVED)
         //     ->where('notified_before_delete', false)
         //     ->whereBetween('created_at', [
@@ -111,7 +111,7 @@ class ProductTimeRules extends Command
         //     $this->info("Notified user for product ID: {$product->id} (1 min before delete)");
         // }
 
-        // // 3. Delete after 30 minutes
+        // // // 3. Delete after 30 minutes
         // $deletedCount = Product::where('created_at','<=',$now->copy()->subMinutes(8))->delete();
         // $this->info("$deletedCount old products deleted.");
     }

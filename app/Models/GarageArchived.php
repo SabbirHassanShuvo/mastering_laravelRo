@@ -9,11 +9,12 @@ use Illuminate\Database\Eloquent\Model;
 class GarageArchived extends Model
 {
     protected $table = 'garage_archived';
-     protected $fillable = ['user_id', 'garage_id'];
 
-    public function garage()
+    protected $fillable = ['user_id', 'garage_id'];
+
+    public function garageSale()
     {
-        return $this->belongsTo(GarageSale::class);
+        return $this->belongsTo(GarageSale::class, 'garage_id');
     }
 
     public function user()

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ArchivedProduct;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductLove;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -43,9 +44,9 @@ class ProductsController extends Controller
         }
 
 
-        // Expiry Logic for testing (1 minute)
+        // // Expiry Logic for testing (1 minute)
         // if ($validated['product_type'] === 'paid') {
-        //     $expiresAt = now()->addMinutes(3); // paid products expire in 1 minute
+        //     $expiresAt = now()->addMinutes(1); // paid products expire in 1 minute
         // } elseif ($validated['product_type'] === 'free') {
         //     $expiresAt = now()->addSeconds(rand(30, 60)); // free products expire in 30–60 seconds
         // } else {
@@ -104,7 +105,7 @@ class ProductsController extends Controller
     }
 
     // Update product professionally
-   public function update(Request $request, $id)
+    public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
             'category_id' => 'required|exists:categories,id',
@@ -260,7 +261,7 @@ class ProductsController extends Controller
 
     public function myArchivedProducts()
     {
-        $archives = ArchivedProduct::with('product.images')
+        $archives = ArchivedProduct::with('product.photos')
             ->where('user_id', auth()->id())
             ->latest()
             ->get();
@@ -313,5 +314,48 @@ class ProductsController extends Controller
         $products = $query->with('photos','user','category')->get();
         return response()->json($products);
     }
+
+    // Like / Unlike a product
+    public function toggle(Request $request, $productId)
+    {
+        $user = $request->user();
+        if (!$user) return response()->json(['status'=>false, 'message'=>'Unauthorized'],401);
+
+        $product = Product::findOrFail($productId);
+
+        $existing = ProductLove::where('product_id',$product->id)
+                                ->where('user_id',$user->id)
+                                ->first();
+
+        if($existing){
+            $existing->delete();
+            $status = 'unliked';
+        } else {
+            ProductLove::create([
+                'product_id' => $product->id,
+                'user_id' => $user->id
+            ]);
+            $status = 'liked';
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => "Product {$status} successfully",
+            'total_loves' => $product->loves()->count()
+        ]);
+    }
+
+    // Get all users who loved a product
+    public function allLoves($productId)
+    {
+        $product = Product::with('lovedUsers:id,name,email')->findOrFail($productId);
+
+        return response()->json([
+            'status' => true,
+            'total_loves' => $product->loves()->count(),
+            'data' => $product->lovedUsers
+        ]);
+    }
+    
 
 }

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\GarageArchived;
 use App\Models\GarageItem;
+use App\Models\GarageLove;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -30,6 +31,16 @@ class GarageSale extends Model
 
     public function archivedByUsers()
     {
-        return $this->hasMany(GarageArchived::class);
+        return $this->hasMany(GarageArchived::class, 'garage_id');
+    }
+
+    public function loves()
+    {
+        return $this->hasMany(GarageLove::class, 'garage_id');
+    }
+
+    public function lovedUsers()
+    {
+        return $this->belongsToMany(User::class, 'garage_loves', 'garage_id', 'user_id');
     }
 }

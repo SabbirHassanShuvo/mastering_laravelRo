@@ -26,8 +26,8 @@ return new class extends Migration
             $table->boolean('is_verified')->default(false);
             $table->boolean('is_active')->default(true);
 
-            $table->string('latitude')->nullable();
-            $table->string('longitude')->nullable();
+            $table->decimal('latitude', 10, 7)->nullable();
+            $table->decimal('longitude', 10, 7)->nullable();
             
             $table->timestamp('password_reset_otp_expiry')->nullable();
             $table->timestamp('last_login_at')->nullable();

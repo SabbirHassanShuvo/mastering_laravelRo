@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\Sabbir;
 
 use App\Http\Controllers\Controller;
+use App\Models\GarageSale;
 use App\Models\Product;
 use Carbon\Carbon;
 use Exception;
@@ -12,40 +13,38 @@ use Illuminate\Support\Facades\Validator;
 
 class ProfileController extends Controller
 {
-     public function profileRetrieval(Request $request)
-{
-    $user = auth()->user();
+    public function profileRetrieval(Request $request)
+    {
+        $user = auth()->user();
 
-    if (!$user) {
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized.'
+            ], 401);
+        }
+
+        $user->load(['products.photos', 'products.category']);
+
         return response()->json([
-            'success' => false,
-            'message' => 'Unauthorized.'
-        ], 401);
+            'success' => true,
+            'message' => 'User profile retrieved successfully.',
+            'data' => [
+                'user' => $user->only([
+                    'id',
+                    'name',
+                    'email',
+                    'avatar',
+                    'address',
+                    'phone',
+                    'role',
+                    'is_premium'
+                ]),
+                'posts' => $user->products
+            ]
+        ], 200);
     }
 
-    $user->load(['products.photos', 'products.category']);
-
-    return response()->json([
-        'success' => true,
-        'message' => 'User profile retrieved successfully.',
-        'data' => [
-            'user' => $user->only([
-                'id',
-                'name',
-                'email',
-                'avatar',
-                'address',
-                'phone',
-                'role',
-                'is_premium'
-            ]),
-            'posts' => $user->products
-        ]
-    ], 200);
-}
-
-
-    
     public function profileUpdate(Request $request)
     {
         $user = auth('api')->user();
@@ -190,51 +189,50 @@ class ProfileController extends Controller
         return jsonResponse(true, 'Password changed successfully', 200, $user->only(['name', 'email', 'avatar']));
     }
 
-public function notifications(Request $request)
+public function getUserNotifications()
 {
-    $user = auth()->user();
+    $user = auth('api')->user();
 
     if (!$user) {
-        return response()->json([
-            'message' => 'Unauthenticated.'
-        ], 401);
+        return response()->json(['status' => false, 'message' => 'Unauthorized'], 401);
     }
 
-    $notifications = $user->notifications()
-        ->latest()
-        ->get()
-        ->map(function ($notification) {
+    $notifications = $user->notifications()->latest()->get()->map(function ($notification) {
 
-            $productData = null;
+        $data = $notification->data;
 
-            if (isset($notification->data['product_id'])) {
-                $product = Product::find($notification->data['product_id']);
+        $summary = [
+            'id' => $notification->id,
+            'type' => $notification->type,
+            'title' => $data['title'] ?? null,
+            'message' => $data['message'] ?? null,
+            'time' => $notification->created_at->format('Y-m-d H:i:s'),
+            'image' => null,
+        ];
 
-                if ($product) {
-                    // relation name change করা যাবে না, তাই map করে অন্য key তে পাঠাচ্ছি
-                    $productData = [
-                        'id' => $product->id,
-                        'name' => $product->name ?? null,
-                        'status' => $product->status ?? null,
-                        'images' => $product->photos->map(function($photo){
-                            return $photo->photo;
-                        }) // শুধু image path
-                    ];
-                }
+        // Product image
+        if (isset($data['product_id'])) {
+            $product = Product::with('images')->find($data['product_id']);
+            if ($product && $product->images->first()?->photo) {
+                $summary['image'] = asset('storage/' . $product->images->first()->photo);
             }
+        }
 
-            return [
-                'id' => $notification->id,
-                'type' => $notification->type,
-                'data' => $notification->data,
-                'product' => $productData
-            ];
-        });
+        // Garage image
+        if (isset($data['garage_id'])) {
+            $garage = GarageSale::with('items.images')->find($data['garage_id']);
+            if ($garage && $garage->items->first()?->images->first()?->photo) {
+                $summary['image'] = asset('storage/' . $garage->items->first()->images->first()->photo);
+            }
+        }
+
+        return $summary;
+    });
 
     return response()->json([
-        'success' => true,
-        'notifications' => $notifications
+        'status' => true,
+        'message' => 'Notifications summary retrieved successfully',
+        'data' => $notifications
     ]);
 }
-
 }
