@@ -232,7 +232,6 @@ class ProductsController extends Controller
         ]);
     }
 
-
     // Archive product
     public function archive(Product $product)
     {
@@ -271,6 +270,13 @@ class ProductsController extends Controller
             'data' => $archives
         ]);
     }
+
+    // listing all products
+    // public function index()
+    // {
+    //     $products = Product::with('photos','user','category')->latest()->get();
+    //     return response()->json($products);
+    // }
 
     // Relist expired product (resets 7-day cycle)
     public function relist($id)
@@ -357,5 +363,75 @@ class ProductsController extends Controller
         ]);
     }
     
+    // Filter Product use Multi data
+    public function filterProducts(Request $request)
+    {
+        $user = auth()->user();
 
+        if (!$user || !$user->latitude || !$user->longitude) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User location not found'
+            ], 400);
+        }
+
+        $lat = $user->latitude;
+        $lng = $user->longitude;
+
+        $query = Product::query()
+            ->selectRaw("products.*, 
+                (6371 * acos(
+                    LEAST(1.0,
+                        cos(radians(?)) * cos(radians(pickup_latitude)) 
+                        * cos(radians(pickup_longitude) - radians(?)) 
+                        + sin(radians(?)) * sin(radians(pickup_latitude))
+                    )
+                )) AS distance", [$lat, $lng, $lat])
+            ->with(['photos:id,product_id,photo_url', 'category:id,title'])
+            ->where('status', 'active')
+            ->whereNotNull('pickup_latitude')
+            ->whereNotNull('pickup_longitude');
+
+        // Distance filter
+        if ($request->filled('distance')) {
+            $query->having('distance', '<=', $request->distance);
+        }
+
+        // Price filter
+        if ($request->filled('price_min') || $request->filled('price_max')) {
+            $min = $request->price_min ?? 0;
+            $max = $request->price_max ?? 999999999;
+            $query->whereBetween('price', [$min, $max]);
+        }
+
+        // Category filter
+        if ($request->filled('categories')) {
+            $query->whereIn('category_id', $request->categories);
+        }
+
+        // Sale type filter (multi-option support)
+        if ($request->filled('sale_type')) {
+            $types = is_array($request->sale_type) ? $request->sale_type : [$request->sale_type];
+
+            $query->where(function($q) use ($types) {
+                foreach ($types as $type) {
+                    if ($type === 'urgent') $q->orWhere('is_urgent', true);
+                    if ($type === 'today') $q->orWhereDate('posted_at', now()->toDateString());
+                    if ($type === 'week') $q->orWhereBetween('posted_at', [now()->startOfWeek(), now()->endOfWeek()]);
+                }
+            });
+        }
+
+        // Ordering
+        $query->orderByDesc('is_spotlighted')
+              ->orderByDesc('is_urgent')
+              ->orderBy('distance');
+
+        $products = $query->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $products
+        ]);
+    }
 }

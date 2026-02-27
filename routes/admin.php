@@ -1,17 +1,17 @@
 <?php
 
 
-use App\Http\Controllers\Web\Backend\CategoryController;
-use App\Http\Controllers\Web\Backend\SystemUserController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\Web\Backend\CategoryController;
+use App\Http\Controllers\Web\Backend\ContactController;
 use App\Http\Controllers\Web\Backend\FaqController;
-use App\Http\Controllers\Web\Backend\SiteController;
 use App\Http\Controllers\Web\Backend\ProjectController;
-
-
-use Illuminate\Support\Facades\Mail;
+use App\Http\Controllers\Web\Backend\SiteController;
+use App\Http\Controllers\Web\Backend\SystemUserController;
+use App\Http\Controllers\Web\Backend\TermController;
 use App\Mail\TestMail;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Route;
 
 Route::group([ 'as'=>'backend.'], function () {
 
@@ -23,6 +23,17 @@ Route::group([ 'as'=>'backend.'], function () {
     Route::group(['as'=>'feature.'], function(){
         Route::post('faq/status/{id}', [FaqController::class,'status'])->name('faq.status');
         Route::resource('faq', FaqController::class)->except(['show']);
+    });
+
+    Route::group(['as'=>'feature.'], function(){
+        Route::post('terms/status/{id}', [TermController::class,'status'])->name('terms.status');
+        Route::resource('terms', TermController::class)->except(['show']);
+    });
+
+    Route::group(['as'=>'feature.', 'prefix'=>'admin'], function(){
+        Route::get('contacts', [ContactController::class,'index'])->name('contacts.index');
+        Route::post('contacts/mark-read/{id}', [ContactController::class,'markRead'])->name('contacts.markRead');
+        Route::get('contacts/view/{id}', [ContactController::class,'view'])->name('contacts.view');
     });
 
     Route::group(['as'=>'feature.'], function(){

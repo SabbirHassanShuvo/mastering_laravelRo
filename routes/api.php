@@ -26,6 +26,8 @@ Route::group([
     Route::post('/password/resend-otp', [AuthController::class, 'resendOtp']);   
     Route::post('/password/verify-otp', [AuthController::class, 'verifyOtp']);
     Route::post('/password/reset', [AuthController::class, 'resetPassword']);
+    Route::post('/password/change', [AuthController::class, 'changePassword']);
+    Route::post('/delete-account', [AuthController::class, 'deleteAccount']);
 });
 
 

@@ -1,5 +1,4 @@
-@extends('backend.master')
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="row">
         <div class="col-lg-12">
             <div class="card" id="tasksList">
@@ -7,12 +6,11 @@
                     <div class="d-flex align-items-center">
                         <h5 class="card-title mb-0 flex-grow-1">All FAQs</h5>
                         <div class="flex-shrink-0">
-                            <a class="btn btn-danger add-btn" href="{{ route('backend.feature.faq.create') }}">
+                            <a class="btn btn-danger add-btn" href="<?php echo e(route('backend.feature.faq.create')); ?>">
                                 <i class="ri-add-line align-bottom me-1"></i> Create FAQ
                             </a>
 
-                            {{-- <button class="btn btn-soft-danger" onClick="deleteMultiple()"><i
-                                    class="ri-delete-bin-2-line"></i></button> --}}
+                            
                         </div>
                     </div>
                 </div>
@@ -64,11 +62,11 @@
         <!--end col-->
     </div>
     <!--end row-->
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts-top')
-@endpush
-@push('scripts-bottom')
+<?php $__env->startPush('scripts-top'); ?>
+<?php $__env->stopPush(); ?>
+<?php $__env->startPush('scripts-bottom'); ?>
     <script>
         (function($) {
             $(function() {
@@ -81,7 +79,7 @@
                     },
                     dom: 'lrtip', // hide default search
 
-                    ajax: "{{ route('backend.feature.faq.index') }}",
+                    ajax: "<?php echo e(route('backend.feature.faq.index')); ?>",
                     columns: [{
                             data: 'DT_RowIndex',
                             name: 'DT_RowIndex',
@@ -136,13 +134,13 @@
         });
 
         function statusFaq(id) {
-            let url = "{{ route('backend.feature.faq.status', ':id') }}";
+            let url = "<?php echo e(route('backend.feature.faq.status', ':id')); ?>";
             $.ajax({
                 type: "POST",
                 url: url.replace(':id', id),
                 data: {
                     id: id,
-                    _token: "{{ csrf_token() }}"
+                    _token: "<?php echo e(csrf_token()); ?>"
                 },
                 success: function(response) {
                     console.log(response);
@@ -178,7 +176,7 @@
         }
 
         function editFaq(id) {
-            let url = "{{ route('backend.feature.faq.edit', ':id') }}";
+            let url = "<?php echo e(route('backend.feature.faq.edit', ':id')); ?>";
             url = url.replace(':id', id);
 
             window.location.href = url;
@@ -202,7 +200,7 @@
                         url: url,
                         type: 'DELETE',
                         data: {
-                            _token: "{{ csrf_token() }}"
+                            _token: "<?php echo e(csrf_token()); ?>"
                         },
                         success: function(response) {
 
@@ -244,4 +242,6 @@
 
         }
     </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('backend.master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\88013\Downloads\Sabbir\mastering_laravelRo\resources\views/backend/layout/faqs/index.blade.php ENDPATH**/ ?>

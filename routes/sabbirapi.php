@@ -21,13 +21,13 @@ Route::group(['middleware' => 'auth:api','prefix' => 'products'], function ($rou
     Route::post('/relist/{id}', [ProductsController::class, 'relist']);
     Route::get('/listed-products-by-status', [ProductsController::class, 'productsByStatus']);
     Route::get('/search', [ProductsController::class, 'search']);
+    Route::post('/filter', [ProductsController::class, 'filterProducts']);
 
     // Archiving routes
-     Route::post('/{product}/archive', [ProductsController::class, 'archive']);
-    
+    Route::post('/{product}/archive', [ProductsController::class, 'archive']);
     Route::post('/{product}/unarchive', [ProductsController::class, 'unarchive']);
-    
     Route::get('/my-archived-products', [ProductsController::class, 'myArchivedProducts']);
+    
 
     // Love/Unlove routes
     Route::post('/{product}/love', [ProductsController::class, 'toggle']);

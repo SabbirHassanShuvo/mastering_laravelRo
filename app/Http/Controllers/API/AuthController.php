@@ -498,36 +498,65 @@ class AuthController extends BaseController
         ]);
     }
 
-    public function ChangePassword(Request $request)
+    public function changePassword(Request $request)
     {
-        // Create custom validator using Validator facade
+        // Validation
         $validator = Validator::make($request->all(), [
             'old_password' => 'required|string',
-            'password' => 'required|string|confirmed|min:8',
+            'password' => 'required|string|confirmed|min:6',
         ]);
 
-        // Check if validation fails
         if ($validator->fails()) {
-            return jsonErrorResponse('Profile Update Validation failed', 422, $validator->errors()->toArray());
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
         }
 
-        // Authenticate the user using JWT
-        // $user = JWTAuth::parseToken()->authenticate();
         $user = auth('api')->user();
 
         if (!$user) {
-            return jsonErrorResponse('User not found or unauthorized', 401);
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found or unauthorized',
+            ], 401);
         }
 
-        // Check if the old password matches the current password
+        // Check old password
         if (!Hash::check($request->old_password, $user->password)) {
-            return jsonErrorResponse('Old password is incorrect', 400);
+            return response()->json([
+                'success' => false,
+                'message' => 'Old password is incorrect',
+            ], 400);
         }
 
-        // Hash the new password and save it to the database
+        // Save new password
         $user->password = Hash::make($request->password);
         $user->save();
 
-        return jsonResponse(true, 'Password changed successfully', 200, $user->only(['name', 'email', 'avatar']));
+        return response()->json([
+            'success' => true,
+            'message' => 'Password changed successfully',
+        ], 200);
+    }
+
+    public function deleteAccount(Request $request)
+    {
+        $user = auth('api')->user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found or unauthorized',
+            ], 401);
+        }
+
+        // Soft delete the user
+        $user->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Account deleted successfully',
+        ], 200);
     }
 }

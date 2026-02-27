@@ -6,6 +6,7 @@ namespace App\Models;
 use App\Models\GarageArchived;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use MatanYadaev\EloquentSpatial\Objects\Point;
@@ -18,6 +19,7 @@ class User extends Authenticatable implements JWTSubject
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
     use HasSpatial;
+    use SoftDeletes;
     /**
      * The attributes that are mass assignable.
      *

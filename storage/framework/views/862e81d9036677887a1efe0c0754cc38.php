@@ -61,6 +61,36 @@
                 <!-- end Dashboard Menu -->
 
 
+                <li class="nav-item">
+                    <a class="nav-link menu-link <?php echo e(getPageStatus('backend.help.*', 'collapsed active')); ?>"
+                        href="#sidebarPagesHelp" data-bs-toggle="collapse" role="button" aria-expanded="false"
+                        aria-controls="sidebarPages">
+                        <i class="ri-pages-line"></i> <span data-key="t-pages">Help & Support</span>
+                    </a>
+                    <div class="collapse menu-dropdown <?php echo e(getPageStatus('backend.help.*', 'show')); ?>"
+                        id="sidebarPagesHelp">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item">
+                                <a href="<?php echo e(route('backend.feature.faq.index')); ?>"
+                                    class="nav-link <?php echo e(getPageStatus('backend.feature.faq.*')); ?>">
+                                    FAQ
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="<?php echo e(route('backend.feature.terms.index')); ?>"
+                                    class="nav-link <?php echo e(getPageStatus('backend.feature.terms.*')); ?>">
+                                    Terms and conditions
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="<?php echo e(route('backend.feature.contacts.index')); ?>"
+                                    class="nav-link <?php echo e(getPageStatus('backend.feature.contacts.*')); ?>">
+                                    Contact Messages
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
                 <li class="menu-title"><i class="ri-more-fill"></i> <span data-key="t-pages">Pages</span></li>
 
 
