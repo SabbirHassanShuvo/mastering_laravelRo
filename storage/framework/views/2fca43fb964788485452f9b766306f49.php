@@ -16,7 +16,6 @@
                                     <th>Subject</th>
                                     <th>Message</th>
                                     <th>Status</th>
-                                    <th>Time</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
@@ -37,7 +36,7 @@
                 let table = $('.data-table').DataTable({
                     processing: true,
                     serverSide: true,
-                    ajax: "<?php echo e(route('feature.contacts.index')); ?>",
+                    ajax: "<?php echo e(route('backend.feature.contacts.index')); ?>",
                     columns: [{
                             data: 'DT_RowIndex',
                             name: 'DT_RowIndex',
@@ -59,10 +58,6 @@
                             searchable: false
                         },
                         {
-                            data: 'created_at',
-                            name: 'created_at'
-                        },
-                        {
                             data: 'action',
                             name: 'action',
                             orderable: false,
@@ -73,35 +68,45 @@
 
                 // Mark as read
                 window.markRead = function(id) {
-                    $.post("<?php echo e(route('feature.contacts.markRead', '')); ?>/" + id, {
-                            _token: "<?php echo e(csrf_token()); ?>"
-                        },
-                        function(response) {
-                            if (response.success) {
-                                table.ajax.reload();
-                                alert(response.message);
-                            }
-                        });
+
+                    let url = "<?php echo e(route('backend.feature.contacts.markRead', ':id')); ?>";
+                    url = url.replace(':id', id);
+
+                    $.post(url, {
+                        _token: "<?php echo e(csrf_token()); ?>"
+                    }, function(response) {
+                        if (response.success) {
+                            table.ajax.reload();
+                        }
+                    });
                 }
 
                 // View Contact
                 window.viewContact = function(id) {
-                    $.get("<?php echo e(route('feature.contacts.view', '')); ?>/" + id, function(response) {
+                    let url = "<?php echo e(route('backend.feature.contacts.view', ':id')); ?>";
+                    url = url.replace(':id', id);
+
+                    $.get(url, function(response) {
                         if (response.success) {
                             let data = response.data;
+
+                            // Format created_at
+                            let createdAt = new Date(data.created_at);
+                            let formattedTime = createdAt
+                                .toLocaleString(); // e.g., "3/1/2026, 10:30:15 PM"
+
                             Swal.fire({
                                 title: data.subject,
                                 html: `
-                            <p><strong>Message:</strong></p>
-                            <p>${data.message}</p>
-                            <p><strong>Status:</strong> ${data.status == 1 ? 'Read' : 'Unread'}</p>
-                            <p><strong>Time:</strong> ${data.created_at}</p>
-                        `,
+                    <p><strong>Message:</strong></p>
+                    <p>${data.message}</p>
+                    <p><strong>Status:</strong> ${data.status == 1 ? 'Read' : 'Unread'}</p>
+                    <p><strong>Time:</strong> ${formattedTime}</p>
+                `,
                                 width: 600,
                                 showCloseButton: true,
                             });
 
-                            // Optionally mark as read automatically
                             if (data.status == 0) {
                                 markRead(id);
                             }

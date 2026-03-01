@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Contact;
 use App\Models\GarageArchived;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -105,4 +106,9 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(GarageArchived::class);
     }
+    public function contacts()
+    {
+        return $this->hasMany(Contact::class);
     }
+
+}

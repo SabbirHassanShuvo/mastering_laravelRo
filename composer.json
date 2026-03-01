@@ -14,7 +14,7 @@
         "laravel/tinker": "^2.10.1",
         "matanyadaev/laravel-eloquent-spatial": "^4.5",
         "php-open-source-saver/jwt-auth": "^2.8",
-        "stripe/stripe-php": "^18.0",
+        "stripe/stripe-php": "^19.4",
         "yajra/laravel-datatables-oracle": "^12.5"
     },
     "require-dev": {

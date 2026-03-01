@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\Sabbir\GarageSalesController;
+use App\Http\Controllers\API\Sabbir\HelpAndSupportController;
 use App\Http\Controllers\API\Sabbir\HomeController;
 use App\Http\Controllers\API\Sabbir\ProductsController;
 use App\Http\Controllers\API\Sabbir\ProfileController;
@@ -32,8 +33,10 @@ Route::group(['middleware' => 'auth:api','prefix' => 'products'], function ($rou
     // Love/Unlove routes
     Route::post('/{product}/love', [ProductsController::class, 'toggle']);
     Route::get('/{product}/loves', [ProductsController::class, 'allLoves']);
-    
 
+    // Category-wise garage sales
+    Route::get('/categories', [ProductsController::class, 'categories']);
+    
 });
 Route::group(['middleware' => 'auth:api','prefix' => 'garage'], function ($router) {
     Route::post('/store', [GarageSalesController::class, 'store']);
@@ -54,12 +57,22 @@ Route::group(['middleware' => 'auth:api','prefix' => 'garage'], function ($route
     Route::post('/{garage}/love', [GarageSalesController::class, 'toggle']);
     Route::get('/{garage}/loves', [GarageSalesController::class, 'users']);
 
+    // Garage item details
+    Route::get('/{id}/garageitem', [GarageSalesController::class, 'garageItemShow']);
+
 });
+
+// Hoeme page
 Route::group(['middleware' => 'auth:api','prefix' => 'home'], function ($router) {
     Route::get('/allproducts', [HomeController::class, 'homeProducts']);
     Route::get('/productsDetails/{id}', [HomeController::class, 'productDetail']);
     Route::get('/allgarages', [HomeController::class, 'homeGarageSales']);
     Route::get('/garageDetails/{id}', [HomeController::class, 'garageDetail']);
 
+});
+Route::group(['middleware' => 'auth:api','prefix' => 'help'], function ($router) {
+    Route::post('/contact-sent', [HelpAndSupportController::class, 'store']);
+    Route::get('/faqs', [HelpAndSupportController::class, 'getFaqs']);
+    Route::get('/terms', [HelpAndSupportController::class, 'getTerms']);
 });
 

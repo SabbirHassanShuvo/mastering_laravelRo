@@ -31,6 +31,7 @@ class ProductsController extends Controller
             'pickup_location' => 'nullable|string',
             'pickup_latitude' => 'nullable|numeric',
             'pickup_longitude' => 'nullable|numeric',
+            'pickup_notes' => 'nullable|string',
             'is_urgent' => 'nullable|boolean',
         ]);
 
@@ -64,6 +65,7 @@ class ProductsController extends Controller
         $product->pickup_location = $validated['pickup_location'] ?? null;
         $product->pickup_latitude = $validated['pickup_latitude'] ?? null;
         $product->pickup_longitude = $validated['pickup_longitude'] ?? null;
+        $product->pickup_notes = $validated['pickup_notes'] ?? null;
         $product->status = Product::STATUS_ACTIVE;
         $product->posted_at = now();
         $product->expires_at = $expiresAt;
@@ -118,6 +120,7 @@ class ProductsController extends Controller
             'pickup_location' => 'nullable|string',
             'pickup_latitude' => 'nullable|numeric',
             'pickup_longitude' => 'nullable|numeric',
+            "pickup_notes" => 'nullable|string',
             'is_urgent' => 'nullable|boolean',
             'urgent_pickup_notes' => 'nullable|string|max:1000',
             'photos.*' => 'nullable|image|max:2048',
@@ -145,6 +148,7 @@ class ProductsController extends Controller
         $product->pickup_location = $validated['pickup_location'] ?? $product->pickup_location;
         $product->pickup_latitude = $validated['pickup_latitude'] ?? $product->pickup_latitude;
         $product->pickup_longitude = $validated['pickup_longitude'] ?? $product->pickup_longitude;
+        $product->pickup_notes = $validated['pickup_notes'] ?? $product->pickup_notes;
 
         // Urgent / Same-Day Pickup
         $product->is_urgent = $validated['is_urgent'] ?? $product->is_urgent;
@@ -433,5 +437,20 @@ class ProductsController extends Controller
             'success' => true,
             'data' => $products
         ]);
+    }
+
+    // Get all categories with product counts
+    public function categories()
+    {
+        $categories = Category::where('status', true)
+            ->latest()
+            ->select('id', 'title', 'slug', 'image')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $categories
+        ]);
+
     }
 }

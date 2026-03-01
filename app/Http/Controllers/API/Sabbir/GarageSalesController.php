@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API\Sabbir;
 
 use App\Http\Controllers\Controller;
 use App\Models\GarageArchived;
+use App\Models\GarageItem;
 use App\Models\GarageLove;
 use App\Models\GarageSale;
 use Carbon\Carbon;
@@ -13,6 +14,78 @@ use Illuminate\Support\Facades\Validator;
 
 class GarageSalesController extends Controller
 {
+    // public function store(Request $request)
+    // {
+    //     // Simple validation
+    //     $validator = Validator::make($request->all(), [
+    //         'event_title' => 'required|string|max:255',
+    //         'date' => 'required|date',
+    //         'pickup_location' => 'required|string|max:255',
+    //         'sale_start_date' => 'required|date',
+    //         'sale_end_date' => 'required|date|after_or_equal:sale_start_date',
+    //         'latitude' => 'nullable|numeric',
+    //         'longitude' => 'nullable|numeric',
+    //         'items' => 'required|array|min:1',
+    //         'items.*.title' => 'required|string|max:255',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status' => 'error',
+    //             'message' => $validator->errors()->first(),
+    //         ], 422);
+    //     }
+
+    //     // Garage Sale Insert (new + save)
+    //     $garage = new GarageSale();
+    //     $garage->user_id = auth()->id();
+    //     $garage->event_title = $request->event_title;
+    //     $garage->description = $request->description ?? null;
+    //     $garage->date = $request->date;
+    //     $garage->pickup_location = $request->pickup_location;
+    //     $garage->sale_start_date = $request->sale_start_date;
+    //     $garage->sale_end_date = $request->sale_end_date;
+    //     $garage->expires_at = Carbon::now()->addDays(7);
+
+    //     $garage->latitude = $request->latitude ?? null;
+    //     $garage->longitude = $request->longitude ?? null;
+
+    //     // testing dates (1 min expiry)
+    //     // $garage->sale_start_date = now();
+    //     // $garage->sale_end_date = Carbon::now()->addMinutes(1); // expire in 1 min
+    //     // $garage->expires_at = Carbon::now()->addMinutes(1);    // 1 min expiry
+        
+    //     $garage->posting_fee = $request->posting_fee ?? 2.99; // hardcoded default value
+    //     $garage->total_fee = $request->total_fee ?? 0; // hardcoded default value
+    //     $garage->status = $request->status ?? 'active'; // hardcoded default value
+    //     $garage->save();
+
+    //     // Garage Items + Images
+    //     foreach ($request->items as $itemData) {
+    //         $item = $garage->items()->create([
+    //             'title' => $itemData['title'],
+    //             'price' => $itemData['price'] ?? null,
+    //             'description' => $itemData['description'] ?? null
+    //         ]);
+
+    //         if (!empty($itemData['images'])) {
+    //             foreach ($itemData['images'] as $file) {
+    //                 if (is_file($file)) { 
+    //                     $path = $file->store('garage_items', 'public');
+    //                     $item->images()->create(['photo' => $path]);
+    //                 } else {
+    //                     $item->images()->create(['photo' => $file]);
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     return response()->json([
+    //         'status' => 'success',
+    //         'message' => 'Garage Sale Published successfully',
+    //         'garage' => $garage->load('items.images')
+    //     ]);
+    // }
     public function store(Request $request)
     {
         // Simple validation
@@ -81,7 +154,7 @@ class GarageSalesController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Garage Sale created successfully',
+            'message' => 'Garage Sale Published successfully',
             'garage' => $garage->load('items.images')
         ]);
     }
@@ -326,12 +399,33 @@ class GarageSalesController extends Controller
     // Get all users who loved a garage sale
     public function users($garageId)
     {
-        $garage = GarageSale::with('lovedUsers:id,name,email')->findOrFail($garageId);
+        $garage = GarageSale::with('lovedUsers:id,name,email')->find($garageId);
+
+        if (!$garage) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Garage Sale not found.',
+            ], 404);
+        }
 
         return response()->json([
-            'status' => true,
-            'total_loves' => $garage->loves()->count(),
-            'users' => $garage->lovedUsers
+            'success' => true,
+            'message' => 'Users who loved this garage sale fetched successfully.',
+            'data' => [
+                'total_loves' => $garage->loves()->count(),
+                'users' => $garage->lovedUsers
+            ]
+        ], 200);
+    }
+
+    // Garage Item Details
+    public function garageItemShow($id)
+    {
+         $item = GarageItem::with(['garageSale.user', 'images'])->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $item
         ]);
     }
 

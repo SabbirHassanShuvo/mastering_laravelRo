@@ -30,7 +30,7 @@ Route::group([ 'as'=>'backend.'], function () {
         Route::resource('terms', TermController::class)->except(['show']);
     });
 
-    Route::group(['as'=>'feature.', 'prefix'=>'admin'], function(){
+    Route::group(['as'=>'feature.',], function(){
         Route::get('contacts', [ContactController::class,'index'])->name('contacts.index');
         Route::post('contacts/mark-read/{id}', [ContactController::class,'markRead'])->name('contacts.markRead');
         Route::get('contacts/view/{id}', [ContactController::class,'view'])->name('contacts.view');

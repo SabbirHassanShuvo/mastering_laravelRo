@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web\Backend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Contact;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -30,7 +31,8 @@ class ContactController extends Controller
                 })
                 ->addColumn('action', function($data){
                     return '
-                        <button onclick="viewContact('.$data->id.')" class="btn btn-primary btn-sm">
+                        <button onclick="viewContact('.$data->id.')" 
+                            class="btn btn-primary btn-sm">
                             View
                         </button>
                     ';
@@ -55,9 +57,13 @@ class ContactController extends Controller
     }
 
     // Fetch single contact data for modal
+
     public function view($id)
     {
         $contact = Contact::findOrFail($id);
+
+        // Add human-readable time
+        $contact->time_ago = Carbon::parse($contact->created_at)->diffForHumans();
 
         return response()->json([
             'success' => true,
