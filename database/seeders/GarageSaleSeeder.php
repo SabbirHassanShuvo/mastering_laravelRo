@@ -32,7 +32,7 @@ class GarageSaleSeeder extends Seeder
                 'expires_at' => Carbon::parse($saleEnd)->addDays(7),
                 'posting_fee' => 2.99,
                 'total_fee' => $faker->randomFloat(2, 10, 100),
-                'status' => 'active'
+                'status' => 'active',
             ]);
 
             $itemsCount = rand(3, 6);

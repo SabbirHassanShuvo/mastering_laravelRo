@@ -6,6 +6,7 @@ use App\Http\Controllers\API\Sabbir\HelpAndSupportController;
 use App\Http\Controllers\API\Sabbir\HomeController;
 use App\Http\Controllers\API\Sabbir\ProductsController;
 use App\Http\Controllers\API\Sabbir\ProfileController;
+use App\Http\Controllers\API\Sabbir\WebhookController;
 use Illuminate\Support\Facades\Route;
 
 Route::group(['middleware' => 'auth:api','prefix' => 'profile'], function ($router) {
@@ -44,6 +45,10 @@ Route::group(['middleware' => 'auth:api','prefix' => 'garage'], function ($route
     Route::get('/{id}/edit', [GarageSalesController::class,'edit']);
     Route::post('/update/{id}', [GarageSalesController::class,'update']);
 
+    // Payment routes
+    Route::post('/{id}/initiate-payment', [GarageSalesController::class, 'initiatePayment']); // Get Payment Intent
+    // Route::post('/{id}/confirm-payment', [GarageSalesController::class, 'confirmPayment']); // Confirm Payment
+
     // Additional routes for garage sale management
     Route::post('/relist/{id}', [GarageSalesController::class, 'relist']);
 
@@ -61,6 +66,9 @@ Route::group(['middleware' => 'auth:api','prefix' => 'garage'], function ($route
     Route::get('/{id}/garageitem', [GarageSalesController::class, 'garageItemShow']);
 
 });
+
+// Webhook Route (No Auth Required)
+Route::post('/webhooks/stripe', [WebhookController::class, 'handleWebhook']);
 
 // Hoeme page
 Route::group(['middleware' => 'auth:api','prefix' => 'home'], function ($router) {

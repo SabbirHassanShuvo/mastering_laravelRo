@@ -14,12 +14,21 @@ class GarageSale extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id','event_title','description','date','pickup_location',
-        'latitude','longitude','sale_start_date','sale_end_date',
-        'status','posting_fee','total_fee','is_spotlighted','expires_at', 'notified_before_delete'
+        'user_id', 'event_title', 'description', 'date', 'pickup_location',
+        'latitude', 'longitude', 'sale_start_date', 'sale_end_date',
+        'posting_fee', 'total_fee', 'is_spotlighted', 'status',
+        'expires_at', 'stripe_payment_intent_id', 'payment_status',
+        'payment_completed_at'
     ];
 
-    protected $dates = ['expires_at','sale_start_date','sale_end_date'];
+    protected $casts = [
+        'date' => 'date',
+        'sale_start_date' => 'datetime',
+        'sale_end_date' => 'datetime',
+        'expires_at' => 'datetime',
+        'payment_completed_at' => 'datetime',
+        'is_spotlighted' => 'boolean',
+    ];
 
     public function user() {
         return $this->belongsTo(User::class);
@@ -42,5 +51,16 @@ class GarageSale extends Model
     public function lovedUsers()
     {
         return $this->belongsToMany(User::class, 'garage_loves', 'garage_id', 'user_id');
+    }
+
+    // Helper methods for payment status
+    public function isPaid()
+    {
+        return $this->payment_status === 'completed';
+    }
+
+    public function isActive()
+    {
+        return $this->status === 'active' && $this->isPaid();
     }
 }

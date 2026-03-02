@@ -23,9 +23,15 @@ return new class extends Migration
             $table->dateTime('sale_start_date');
             $table->dateTime('sale_end_date');
             $table->decimal('posting_fee', 8,2)->default(2.99);
-            $table->decimal('total_fee', 8,2)->default(2.99);
             $table->boolean('is_spotlighted')->default(false);
             $table->enum('status', ['active', 'expired', 'sold', 'archived'])->default('active');
+            
+            // Payment fields
+            $table->decimal('total_fee', 8, 2)->default(0);
+            $table->string('stripe_payment_intent_id')->nullable()->unique();
+            $table->enum('payment_status', ['pending', 'completed', 'failed', 'refunded'])->default('pending');
+            $table->dateTime('payment_completed_at')->nullable();
+            
             $table->boolean('notified_before_delete')->default(false);
             $table->dateTime('expires_at')->nullable();
             $table->timestamps();
