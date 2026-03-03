@@ -46,8 +46,8 @@ Route::group(['middleware' => 'auth:api','prefix' => 'garage'], function ($route
     Route::post('/update/{id}', [GarageSalesController::class,'update']);
 
     // Payment routes
-    Route::post('/{id}/initiate-payment', [GarageSalesController::class, 'initiatePayment']); // Get Payment Intent
-    // Route::post('/{id}/confirm-payment', [GarageSalesController::class, 'confirmPayment']); // Confirm Payment
+    Route::post('/initiate-payment', [GarageSalesController::class, 'initiatePayment']); // Get Payment Intent
+    Route::post('/confirm-payment', [GarageSalesController::class, 'confirmPayment']); // Confirm Payment
 
     // Additional routes for garage sale management
     Route::post('/relist/{id}', [GarageSalesController::class, 'relist']);

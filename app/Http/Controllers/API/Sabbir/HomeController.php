@@ -51,61 +51,58 @@ class HomeController extends Controller
 
     // Product detsails based on product id
     public function productDetail($id)
-    {
-        $user = auth()->user();
+{
+    $user = auth()->user();
 
-        if (!$user->latitude || !$user->longitude) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User location not found'
-            ], 400);
-        }
-
-        $lat = $user->latitude;
-        $lng = $user->longitude;
-
-        $product = Product::selectRaw("
-                products.*,
-                (
-                    6371 * acos(
-                        LEAST(1.0,
-                            cos(radians(?))
-                            * cos(radians(pickup_latitude))
-                            * cos(radians(pickup_longitude) - radians(?))
-                            + sin(radians(?))
-                            * sin(radians(pickup_latitude))
-                        )
-                    )
-                ) AS distance
-            ", [$lat, $lng, $lat])
-            ->with([
-                'photos',
-                'user.profile',  
-                'category'
-            ])
-            ->where('id', $id)
-            ->first();
-
-        if (!$product) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Product not found'
-            ], 404);
-        }
-
-        // Only select needed user info
-        $product->user = [
-            'id' => $product->user->id,
-            'name' => $product->user->name,
-            'status' => $product->user->status,
-            'avatar' => $product->user->profile?->avatar
-        ];
-
+    if (!$user->latitude || !$user->longitude) {
         return response()->json([
-            'success' => true,
-            'data' => $product
-        ]);
+            'success' => false,
+            'message' => 'User location not found'
+        ], 400);
     }
+
+    $lat = $user->latitude;
+    $lng = $user->longitude;
+
+    $product = Product::selectRaw("
+            products.*,
+            (
+                6371 * acos(
+                    LEAST(1.0,
+                        cos(radians(?))
+                        * cos(radians(pickup_latitude))
+                        * cos(radians(pickup_longitude) - radians(?))
+                        + sin(radians(?))
+                        * sin(radians(pickup_latitude))
+                    )
+                )
+            ) AS distance
+        ", [$lat, $lng, $lat])
+        ->with([
+            'photos',
+            'category',
+            'user' => function ($query) {
+                $query->select('id', 'name', 'status');
+            },
+            'user.profile' => function ($query) {
+                $query->select('id', 'user_id', 'avatar');
+            }
+        ])
+        ->where('id', $id)
+        ->first();
+
+    if (!$product) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Product not found'
+        ], 404);
+    }
+
+    return response()->json([
+        'success' => true,
+        'data' => $product
+    ]);
+}
 
     // Fetch products based on user's location and category
     public function homeGarageSales()

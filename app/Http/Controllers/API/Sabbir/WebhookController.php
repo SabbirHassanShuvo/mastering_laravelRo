@@ -3,101 +3,97 @@
 namespace App\Http\Controllers\API\Sabbir;
 
 use App\Http\Controllers\Controller;
+use App\Models\GarageItem;
+use App\Models\GarageItemImage;
 use App\Models\GarageSale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Stripe\Stripe;
 use Stripe\Webhook;
 
-class WebhookController extends Controller
+class WebhookController extends Controller  
 {
     public function handleWebhook(Request $request)
     {
+        Stripe::setApiKey(config('services.stripe.secret'));
+        
         $endpointSecret = config('services.stripe.webhook_secret');
-
         $payload = $request->getContent();
         $sigHeader = $request->header('Stripe-Signature');
 
+        Log::info('Webhook hit! Secret: ' . ($endpointSecret ? 'SET' : 'NOT SET'));
+        Log::info('Sig Header: ' . ($sigHeader ?? 'MISSING'));
+
         try {
-            $event = Webhook::constructEvent(
-                $payload,
-                $sigHeader,
-                $endpointSecret
-            );
+            $event = Webhook::constructEvent($payload, $sigHeader, $endpointSecret);
         } catch (\Exception $e) {
-            Log::error('Stripe Webhook Error: ' . $e->getMessage());
+            Log::error('Webhook failed: ' . $e->getMessage());
             return response()->json(['error' => 'Invalid webhook'], 400);
         }
 
-        switch ($event->type) {
+        Log::info('Event type: ' . $event->type);
 
-            case 'payment_intent.succeeded':
-                $this->handlePaymentSucceeded($event->data->object);
-                break;
-
-            case 'payment_intent.payment_failed':
-                $this->handlePaymentFailed($event->data->object);
-                break;
-
-            case 'charge.refunded':
-                $this->handleRefund($event->data->object);
-                break;
+        if ($event->type === 'payment_intent.succeeded') {
+            $paymentIntent = $event->data->object;
+            Log::info('PaymentIntent metadata: ' . json_encode($paymentIntent->metadata));
+            
+            try {
+                $this->saveGarage($paymentIntent);
+            } catch (\Exception $e) {
+                Log::error('SaveGarage error: ' . $e->getMessage());
+                Log::error($e->getTraceAsString());
+            }
         }
 
         return response()->json(['success' => true]);
     }
 
-    private function handlePaymentSucceeded($paymentIntent)
+    private function saveGarage($paymentIntent)
     {
-        $garageSaleId = $paymentIntent->metadata->garage_sale_id ?? null;
+        $metadata = $paymentIntent->metadata;
 
-        if (!$garageSaleId) return;
+        if (GarageSale::where('stripe_payment_intent_id', $paymentIntent->id)->exists()) {
+            Log::info('Duplicate, skipping: ' . $paymentIntent->id);
+            return;
+        }
 
-        $garage = GarageSale::find($garageSaleId);
+        // field log 
+        Log::info('Metadata received: ' . json_encode($metadata->toArray()));
 
-        if (!$garage) return;
+        $garage = GarageSale::create([
+            'user_id'                  => $metadata->user_id,
+            'event_title'              => $metadata->event_title ?? 'Garage Sale', // null safe
+            'description'              => $metadata->description ?? '',
+            'date'                     => $metadata->date,
+            'pickup_location'          => $metadata->pickup_location,
+            'sale_start_date'          => $metadata->sale_start_date,
+            'sale_end_date'            => $metadata->sale_end_date,
+            'total_fee'                => 2.99,
+            'status'                   => 'active',
+            'payment_status'           => 'completed',
+            'payment_completed_at'     => now(),
+            'stripe_payment_intent_id' => $paymentIntent->id,
+        ]);
 
-        if ($garage->payment_status !== 'completed') {
-            $garage->update([
-                'payment_status' => 'completed',
-                'payment_completed_at' => now(),
-                'status' => 'active'
+        $items = json_decode($metadata->items, true);
+
+        foreach ($items as $itemData) {
+            $item = GarageItem::create([
+                'garage_sale_id' => $garage->id,
+                'title'          => $itemData['title'],
+                'price'          => $itemData['price'] ?? null,
+                'description'    => $itemData['description'] ?? null,
             ]);
 
-            Log::info("Payment completed for GarageSale ID: {$garageSaleId}");
+            if (!empty($itemData['images'])) {
+                foreach ($itemData['images'] as $img) {
+                    GarageItemImage::create([
+                        'garage_item_id' => $item->id,
+                        'photo'          => $img,
+                    ]);
+                }
+            }
         }
-    }
-
-    private function handlePaymentFailed($paymentIntent)
-    {
-        $garageSaleId = $paymentIntent->metadata->garage_sale_id ?? null;
-
-        if (!$garageSaleId) return;
-
-        $garage = GarageSale::find($garageSaleId);
-
-        if ($garage) {
-            $garage->update([
-                'payment_status' => 'failed'
-            ]);
-
-            Log::warning("Payment failed for GarageSale ID: {$garageSaleId}");
-        }
-    }
-
-    private function handleRefund($charge)
-    {
-        $garageSaleId = $charge->metadata->garage_sale_id ?? null;
-
-        if (!$garageSaleId) return;
-
-        $garage = GarageSale::find($garageSaleId);
-
-        if ($garage) {
-            $garage->update([
-                'payment_status' => 'refunded'
-            ]);
-
-            Log::info("Payment refunded for GarageSale ID: {$garageSaleId}");
-        }
+        Log::info("GarageSale #{$garage->id} saved! PaymentIntent: {$paymentIntent->id}");
     }
 }

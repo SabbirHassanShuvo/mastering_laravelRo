@@ -16,50 +16,22 @@ class StripePaymentService
     /**
      * Create Payment Intent for Garage Sale
      */
-   public function createPaymentIntent(GarageSale $garageSale)
-    {
+
+    public function createPaymentIntent($metadata){
         try {
-
-            if ($garageSale->stripe_payment_intent_id) {
-
-                $existing = PaymentIntent::retrieve($garageSale->stripe_payment_intent_id);
-
-                return [
-                    'status' => 'success',
-                    'client_secret' => $existing->client_secret,
-                    'payment_intent_id' => $existing->id,
-                    'amount' => $garageSale->total_fee,
-                ];
-            }
-
-            $paymentIntent = PaymentIntent::create([
-                'amount' => (int)($garageSale->total_fee * 100),
-                'currency' => 'usd',
-                'payment_method_types' => ['card'],
-                'metadata' => [
-                    'garage_sale_id' => $garageSale->id,
-                    'user_id' => $garageSale->user_id,
-                ],
+            $intent = PaymentIntent::create([
+                'amount'=>299, // 2.99 USD
+                'currency'=>'usd',
+                'payment_method_types'=>['card'],
+                'metadata'=>$metadata
             ]);
-
-            $garageSale->update([
-                'stripe_payment_intent_id' => $paymentIntent->id,
-                'payment_status' => 'pending',
-            ]);
-
             return [
-                'status' => 'success',
-                'client_secret' => $paymentIntent->client_secret,
-                'payment_intent_id' => $paymentIntent->id,
-                'amount' => $garageSale->total_fee,
+                'status'=>'success',
+                'client_secret'=>$intent->client_secret,
+                'payment_intent_id'=>$intent->id
             ];
-
-        } catch (\Exception $e) {
-
-            return [
-                'status' => 'error',
-                'message' => $e->getMessage(),
-            ];
+        } catch (\Exception $e){
+            return ['status'=>'error','message'=>$e->getMessage()];
         }
     }
 

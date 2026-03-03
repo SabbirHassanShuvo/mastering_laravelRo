@@ -39,10 +39,10 @@ return [
         ],
     ],
     // Stripe configuration
-    'stripe' => [
-        'public_key' => env('STRIPE_PUBLIC_KEY'),
-        'secret' => env('STRIPE_SECRET_KEY'),
-        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+   'stripe' => [
+    'key'            => env('STRIPE_KEY'),
+    'secret'         => env('STRIPE_SECRET'),        // ← STRIPE_SECRET
+    'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
     ],
 
 ];
