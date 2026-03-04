@@ -8,6 +8,7 @@ use App\Models\GarageItemImage;
 use App\Models\GarageSale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Stripe\Stripe;
 use Stripe\Webhook;
 
@@ -52,22 +53,26 @@ class WebhookController extends Controller
     {
         $metadata = $paymentIntent->metadata;
 
+        // Duplicate check
         if (GarageSale::where('stripe_payment_intent_id', $paymentIntent->id)->exists()) {
             Log::info('Duplicate, skipping: ' . $paymentIntent->id);
             return;
         }
 
-        // field log 
         Log::info('Metadata received: ' . json_encode($metadata->toArray()));
 
+        // Create Garage Sale
         $garage = GarageSale::create([
             'user_id'                  => $metadata->user_id,
-            'event_title'              => $metadata->event_title ?? 'Garage Sale', // null safe
+            'event_title'              => $metadata->event_title ?? 'Garage Sale',
             'description'              => $metadata->description ?? '',
             'date'                     => $metadata->date,
             'pickup_location'          => $metadata->pickup_location,
             'sale_start_date'          => $metadata->sale_start_date,
             'sale_end_date'            => $metadata->sale_end_date,
+            'latitude'                 => $metadata->latitude ?: null,
+            'longitude'                => $metadata->longitude ?: null,
+            'expires_at'               => $metadata->expires_at,
             'total_fee'                => 2.99,
             'status'                   => 'active',
             'payment_status'           => 'completed',
@@ -87,6 +92,7 @@ class WebhookController extends Controller
 
             if (!empty($itemData['images'])) {
                 foreach ($itemData['images'] as $img) {
+                    // Images are already stored paths or URLs — save directly
                     GarageItemImage::create([
                         'garage_item_id' => $item->id,
                         'photo'          => $img,
@@ -94,6 +100,7 @@ class WebhookController extends Controller
                 }
             }
         }
+
         Log::info("GarageSale #{$garage->id} saved! PaymentIntent: {$paymentIntent->id}");
     }
 }

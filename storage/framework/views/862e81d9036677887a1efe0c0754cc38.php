@@ -57,6 +57,12 @@
                         <i class="ri-dashboard-line"></i> <span>Categories</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link menu-link <?php echo e(request()->routeIs('backend.feature.category.*') ? 'active' : ''); ?>"
+                        href="<?php echo e(route('backend.feature.category.index')); ?>">
+                        <i class="ri-dashboard-line"></i> <span>Categories</span>
+                    </a>
+                </li>
                 
                 <!-- end Dashboard Menu -->
 

@@ -10,6 +10,7 @@ use App\Models\GarageSale;
 use App\Services\StripePaymentService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Stripe\PaymentIntent;
@@ -92,207 +93,108 @@ class GarageSalesController extends Controller
     // }
 
 
-
-
-
-
-
     protected $stripeService;
     public function __construct(StripePaymentService $stripeService){
         $this->stripeService = $stripeService;
     }
 
-    public function initiatePayment(Request $request){
-        $validator = Validator::make($request->all(),[
-            'event_title'=>'required|string|max:255',
-            'date'=>'required|date',
-            'pickup_location'=>'required|string|max:255',
-            'sale_start_date'=>'required|date',
-            'sale_end_date'=>'required|date|after_or_equal:sale_start_date',
-            'items'=>'required|array|min:1'
+    public function initiatePayment(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'event_title'      => 'required|string|max:255',
+            'date'             => 'required|date',
+            'pickup_location'  => 'required|string|max:255',
+            'sale_start_date'  => 'required|date',
+            'sale_end_date'    => 'required|date|after_or_equal:sale_start_date',
+            'items'            => 'required|array|min:1',
+            'items.*.title'    => 'required|string|max:255',
         ]);
 
-        if($validator->fails()){
+        if ($validator->fails()) {
             return response()->json([
-                'status'=>false,
-                'message'=>$validator->errors()->first()
-            ],422);
+                'status'  => false,
+                'message' => $validator->errors()->first()
+            ], 422);
         }
 
-        // Metadata for Stripe
+        // Upload images FIRST, collect file paths before Stripe metadata
+        $processedItems = [];
+
+        foreach ($request->items as $index => $itemData) {
+            $images = [];
+
+            $uploadedImages = $request->file("items.{$index}.images") ?? [];
+
+            foreach ($uploadedImages as $file) {
+                if ($file instanceof UploadedFile && $file->isValid()) {
+                    // Store file → get path
+                    $path = $file->store('garage_items', 'public');
+                    $images[] = $path; // e.g. "garage_items/abc123.jpg"
+                }
+            }
+
+            // foreach ($uploadedImages as $file) {
+            //     if ($file instanceof UploadedFile && $file->isValid()) {
+
+            //         $path = $file->store('garage_items', 'public');
+
+            //         // only filename
+            //         $filename = basename($path);
+
+            //         $images[] = $filename;
+            //     }
+            // }
+
+            // Also handle base64 strings if frontend sends them
+            if (!empty($itemData['images']) && is_array($itemData['images'])) {
+                foreach ($itemData['images'] as $img) {
+                    if (is_string($img) && str_starts_with($img, 'data:image')) {
+                        $decoded  = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $img));
+                        $filename = 'garage_items/' . uniqid() . '.jpg';
+                        Storage::disk('public')->put($filename, $decoded);
+                        $images[] = $filename;
+                    } elseif (is_string($img) && filter_var($img, FILTER_VALIDATE_URL)) {
+                        $images[] = $img; // already a URL, keep as-is
+                    }
+                }
+            }
+
+            $processedItems[] = [
+                'title'       => $itemData['title'],
+                'price'       => $itemData['price'] ?? null,
+                'description' => $itemData['description'] ?? null,
+                'images'      => $images, // now just plain file paths / URLs
+            ];
+        }
+
+        // Metadata for Stripe (only serializable data)
         $metadata = [
-            'user_id'=>auth()->id(),
-            'event_title'=>$request->event_title,
-            'description'=>$request->description ?? '',
-            'date'=>$request->date,
-            'pickup_location'=>$request->pickup_location,
-            'sale_start_date'=>$request->sale_start_date,
-            'sale_end_date'=>$request->sale_end_date,
-            'items'=>json_encode($request->items)
+            'user_id'         => auth()->id(),
+            'event_title'     => $request->event_title,
+            'description'     => $request->description ?? '',
+            'date'            => $request->date,
+            'pickup_location' => $request->pickup_location,
+            'sale_start_date' => $request->sale_start_date,
+            'sale_end_date'   => $request->sale_end_date,
+            'latitude'        => $request->latitude ?? '',
+            'longitude'       => $request->longitude ?? '',
+            'expires_at'      => now()->addDays(7)->toDateTimeString(),
+            'items'           => json_encode($processedItems), // clean JSON, no file objects
         ];
 
         $payment = $this->stripeService->createPaymentIntent($metadata);
 
-        if($payment['status']=='error'){
-            return response()->json($payment,400);
+        if ($payment['status'] == 'error') {
+            return response()->json($payment, 400);
         }
 
         return response()->json([
-            'status'=>true,
-            'message'=>'Payment intent created',
-            'data'=>$payment
+            'status'  => true,
+            'message' => 'Payment intent created',
+            'data'    => $payment
         ]);
     }
 
-
-
-
-
-
-
-
-
-
-    // protected $stripeService;
-
-    // public function __construct(StripePaymentService $stripeService)
-    // {
-    //     $this->stripeService = $stripeService;
-    // }
-
-    // /**
-    //  * Step 1: Create Garage Sale (Pending Payment)
-    //  */
-    // public function store(Request $request)
-    // {
-    //     $validator = Validator::make($request->all(), [
-    //         'event_title' => 'required|string|max:255',
-    //         'date' => 'required|date',
-    //         'pickup_location' => 'required|string|max:255',
-    //         'sale_start_date' => 'required|date',
-    //         'sale_end_date' => 'required|date|after_or_equal:sale_start_date',
-    //         'latitude' => 'nullable|numeric',
-    //         'longitude' => 'nullable|numeric',
-    //         'items' => 'required|array|min:1',
-    //         'items.*.title' => 'required|string|max:255',
-    //         'items.*.price' => 'nullable|numeric|min:0',
-    //         'items.*.description' => 'nullable|string',
-    //         'items.*.images' => 'nullable|array',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'status' => 'error',
-    //             'message' => $validator->errors()->first(),
-    //         ], 422);
-    //     }
-
-    //     try {
-    //         // Create Garage Sale with PENDING status
-    //         $garage = new GarageSale();
-    //         $garage->user_id = auth()->id();
-    //         $garage->event_title = $request->event_title;
-    //         $garage->description = $request->description ?? null;
-    //         $garage->date = $request->date;
-    //         $garage->pickup_location = $request->pickup_location;
-    //         $garage->sale_start_date = $request->sale_start_date;
-    //         $garage->sale_end_date = $request->sale_end_date;
-    //         $garage->expires_at = Carbon::now()->addDays(7);
-    //         $garage->latitude = $request->latitude ?? null;
-    //         $garage->longitude = $request->longitude ?? null;
-    //         $garage->posting_fee = 2.99;
-    //         $garage->total_fee = 2.99; // Payment amount
-    //         $garage->status = 'active'; // Will be fully active after payment
-    //         $garage->payment_status = 'pending'; // Initially pending
-    //         $garage->save();
-
-    //         // Add Items & Images
-    //         foreach ($request->items as $itemData) {
-    //             $item = $garage->items()->create([
-    //                 'title' => $itemData['title'],
-    //                 'price' => $itemData['price'] ?? null,
-    //                 'description' => $itemData['description'] ?? null
-    //             ]);
-
-    //             if (!empty($itemData['images'])) {
-    //                 foreach ($itemData['images'] as $file) {
-    //                     if (is_file($file)) {
-    //                         $path = $file->store('garage_items', 'public');
-    //                         $item->images()->create(['photo' => $path]);
-    //                     }
-    //                 }
-    //             }
-    //         }
-
-    //         return response()->json([
-    //             'status' => 'success',
-    //             'message' => 'Garage Sale created. Proceed to payment.',
-    //             'garage' => $garage->load('items.images'),
-    //             'next_step' => 'payment'
-    //         ], 201);
-
-    //     } catch (\Exception $e) {
-    //         return response()->json([
-    //             'status' => 'error',
-    //             'message' => $e->getMessage(),
-    //         ], 500);
-    //     }
-    // }
-
-    // /**
-    //  * Step 2: Initialize Payment
-    //  */
-    // public function initiatePayment(Request $request)
-    // {
-    //     $validator = Validator::make($request->all(), [
-    //         'garage_sale_id' => 'required|exists:garage_sales,id',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'status' => 'error',
-    //             'message' => $validator->errors()->first(),
-    //         ], 422);
-    //     }
-
-    //     try {
-    //         $garage = GarageSale::findOrFail($request->garage_sale_id);
-
-    //         // Check ownership
-    //         if ($garage->user_id !== auth()->id()) {
-    //             return response()->json([
-    //                 'status' => 'error',
-    //                 'message' => 'Unauthorized',
-    //             ], 403);
-    //         }
-
-    //         // Check if already paid
-    //         if ($garage->isPaid()) {
-    //             return response()->json([
-    //                 'status' => 'error',
-    //                 'message' => 'This garage sale is already published',
-    //             ], 400);
-    //         }
-
-    //         $paymentResult = $this->stripeService->createPaymentIntent($garage);
-
-    //         if ($paymentResult['status'] === 'error') {
-    //             return response()->json($paymentResult, 400);
-    //         }
-
-    //         return response()->json([
-    //             'status' => 'success',
-    //             'message' => 'Payment intent created',
-    //             'data' => $paymentResult
-    //         ]);
-
-    //     } catch (\Exception $e) {
-    //         return response()->json([
-    //             'status' => 'error',
-    //             'message' => $e->getMessage(),
-    //         ], 500);
-    //     }
-    // }
 
     /**
      * Step 3: Confirm Payment (Frontend sends this after Stripe confirms)

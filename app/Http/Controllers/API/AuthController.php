@@ -26,42 +26,43 @@ class AuthController extends BaseController
     /** Register a User.
      * @return \Illuminate\Http\JsonResponse */
     public function register(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'name' => 'required',
-        'email' => 'required|email|unique:users,email',
-        'password' => 'required|min:6',
-    ]);
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|min:6',
+        ]);
 
-    if ($validator->fails()) {
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first()
+            ], 422);
+        }
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'interests' => $request->interests,
+        ]);
+
+        // Auto login after register
+        $token = auth('api')->login($user);
+
         return response()->json([
-            'success' => false,
-            'message' => $validator->errors()->first()
-        ], 422);
+            'success' => true,
+            'message' => 'Registration successful.',
+            'data' => [
+                'token' => $token,
+                'token_type' => 'Bearer',
+                'expires_in' => auth('api')->factory()->getTTL() * 60,
+                'user' => $user
+            ]
+        ], 201);
     }
-
-    $user = new User();
-    $user->name = $request->name;
-    $user->email = $request->email;
-    $user->password = bcrypt($request->password);
-
-    // Optional fields
-    $user->latitude = $request->latitude;
-    $user->longitude = $request->longitude;
-
-    // Interests 
-    $user->interests = $request->interests;
-
-    $user->save();
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Registration successful.',
-        'data' => [
-            'user' => $user
-        ]
-    ], 201);
-}
 
   
   
@@ -74,19 +75,11 @@ class AuthController extends BaseController
             'password' => 'required|string|min:6',
         ]);
 
-        // if ($validator->fails()) {
-        //     return response()->json([
-        //         'success' => false,
-        //         'message' => 'Validation failed.',
-        //         'errors'  => $validator->errors()
-        //     ], 422);
-        // }
-
         if ($validator->fails()) {
-        return response()->json([
-            'success' => false,
-            'message' => $validator->errors()->first(),
-        ], 422);
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
         }
 
         $credentials = $request->only('email', 'password');
@@ -94,7 +87,7 @@ class AuthController extends BaseController
         if (! $token = auth('api')->attempt($credentials)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid credentials. Please check your email and password.'
+                'message' => 'Invalid credentials.'
             ], 401);
         }
 
@@ -104,11 +97,14 @@ class AuthController extends BaseController
 
         return response()->json([
             'success' => true,
-            'message' => 'User logged in successfully.',
-            'token'   => $token,
-            'role'    => $user->role,
-            'last_login_at' => $user->last_login_at->format('Y-m-d H:i:s')
-        ], 200);
+            'message' => 'Login successful.',
+            'data' => [
+                'token' => $token,
+                'token_type' => 'Bearer',
+                'expires_in' => auth('api')->factory()->getTTL() * 60,
+                'user' => $user
+            ]
+        ]);
     }
 
   

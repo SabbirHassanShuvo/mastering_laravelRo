@@ -71,6 +71,12 @@
                         <i class="ri-dashboard-line"></i> <span>Categories</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ request()->routeIs('backend.feature.category.*') ? 'active' : '' }}"
+                        href="{{ route('backend.feature.category.index') }}">
+                        <i class="ri-dashboard-line"></i> <span>Categories</span>
+                    </a>
+                </li>
                 {{-- <li class="nav-item">
                     <a class="nav-link menu-link  {{ getPageStatus('backend.dashboard.*', 'collapsed active') }}"
                         href="#sidebarDashboards" role="button">

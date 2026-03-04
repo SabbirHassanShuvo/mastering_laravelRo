@@ -72,10 +72,10 @@ Route::post('/webhooks/stripe', [WebhookController::class, 'handleWebhook']);
 
 // Hoeme page
 Route::group(['middleware' => 'auth:api','prefix' => 'home'], function ($router) {
-    Route::get('/allproducts', [HomeController::class, 'homeProducts']);
-    Route::get('/productsDetails/{id}', [HomeController::class, 'productDetail']);
-    Route::get('/allgarages', [HomeController::class, 'homeGarageSales']);
-    Route::get('/garageDetails/{id}', [HomeController::class, 'garageDetail']);
+    Route::post('/allproducts', [HomeController::class, 'homeProducts']);
+    Route::post('/productsDetails/{id}', [HomeController::class, 'productDetail']);
+    Route::post('/allgarages', [HomeController::class, 'homeGarageSales']);
+    Route::post('/garageDetails/{id}', [HomeController::class, 'garageDetail']);
 
 });
 Route::group(['middleware' => 'auth:api','prefix' => 'help'], function ($router) {
