@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API\Sabbir;
 use App\Http\Controllers\Controller;
 use App\Models\ArchivedProduct;
 use App\Models\Category;
+use App\Models\Matche;
 use App\Models\Product;
 use App\Models\ProductLove;
 use Illuminate\Http\Request;
@@ -316,56 +317,107 @@ class ProductsController extends Controller
 
     // List products by status
     public function productsByStatus(Request $request){
-        $query = Product::query();
-        if($request->status === 'active') $query->where('status', Product::STATUS_ACTIVE);
-        elseif($request->status === 'expired') $query->where('status', Product::STATUS_EXPIRED);
-        else return response()->json(['message'=>'Invalid status'], 400);
+         $validStatuses = [
+            Product::STATUS_ACTIVE,
+            Product::STATUS_EXPIRED,
+            Product::STATUS_SOLD
+        ];
 
-        $products = $query->with('photos','user','category')->get();
-        return response()->json($products);
+        if (!in_array($request->status, $validStatuses)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Invalid status'
+            ], 400);
+        }
+
+        $products = Product::where('status', $request->status)
+            ->withCount('loves') // interest count
+            ->get()
+            ->map(function ($product) {
+                return [
+                    'id' => $product->id,
+                    'title' => $product->title,
+                    'price' => $product->price,
+                    'product_image' => $product->product_image,
+                    'status' => $product->status,
+                    'interest_count' => $product->loves_count
+                ];
+            });
+
+        return response()->json([
+            'status' => true,
+            'data' => $products
+        ]);
+    }
+
+    public function productDetails($id)
+    {
+        $product = Product::with(['photos', 'category'])
+            ->withCount('loves') // interest count
+            ->findOrFail($id);
+
+        return response()->json([
+            'status' => true,
+            'data' => [
+                'photos' => $product->photos->pluck('image'), // শুধু image URLs
+                'title' => $product->title,
+                'price' => $product->price,
+                'status' => $product->status,
+                'created_at' => $product->created_at->toDateTimeString(),
+                'condition' => $product->condition,
+                'category' => [
+                    'id' => $product->category->id,
+                    'name' => $product->category->name
+                ],
+                'interest_count' => $product->loves_count,
+                'description' => $product->description,
+                'latitude' => $product->latitude,
+                'longitude' => $product->longitude,
+            ]
+        ]);
     }
 
     // Like / Unlike a product
-    public function toggle(Request $request, $productId)
-    {
-        $user = $request->user();
-        if (!$user) return response()->json(['status'=>false, 'message'=>'Unauthorized'],401);
+    // public function toggle(Request $request, $productId)
+    // {
+    //     $user = $request->user();
+    //     if (!$user) return response()->json(['status'=>false, 'message'=>'Unauthorized'],401);
 
-        $product = Product::findOrFail($productId);
+    //     $product = Product::findOrFail($productId);
 
-        $existing = ProductLove::where('product_id',$product->id)
-                                ->where('user_id',$user->id)
-                                ->first();
+    //     $existing = ProductLove::where('product_id',$product->id)
+    //                             ->where('user_id',$user->id)
+    //                             ->first();
 
-        if($existing){
-            $existing->delete();
-            $status = 'unliked';
-        } else {
-            ProductLove::create([
-                'product_id' => $product->id,
-                'user_id' => $user->id
-            ]);
-            $status = 'liked';
-        }
+    //     if($existing){
+    //         $existing->delete();
+    //         $status = 'unliked';
+    //     } else {
+    //         ProductLove::create([
+    //             'product_id' => $product->id,
+    //             'user_id' => $user->id
+    //         ]);
+    //         $status = 'liked';
+    //     }
 
-        return response()->json([
-            'status' => true,
-            'message' => "Product {$status} successfully",
-            'total_loves' => $product->loves()->count()
-        ]);
-    }
+    //     return response()->json([
+    //         'status' => true,
+    //         'message' => "Product {$status} successfully",
+    //         'total_loves' => $product->loves()->count()
+    //     ]);
+    // }
 
     // Get all users who loved a product
-    public function allLoves($productId)
-    {
-        $product = Product::with('lovedUsers:id,name,email')->findOrFail($productId);
+    // public function allLoves($productId)
+    // {
+    //     $product = Product::with('lovedUsers:id,name,email')->findOrFail($productId);
 
-        return response()->json([
-            'status' => true,
-            'total_loves' => $product->loves()->count(),
-            'data' => $product->lovedUsers
-        ]);
-    }
+    //     return response()->json([
+    //         'status' => true,
+    //         'total_loves' => $product->loves()->count(),
+    //         'data' => $product->lovedUsers
+    //     ]);
+    // }
     
     // Filter Product use Multi data
     public function filterProducts(Request $request)
@@ -452,5 +504,120 @@ class ProductsController extends Controller
             'data' => $categories
         ]);
 
+    }
+
+    public function toggle(Request $request, $productId)
+    {
+        $user = $request->user();
+
+        $product = Product::with(['user.profile'])->findOrFail($productId);
+
+        $love = ProductLove::where('product_id', $product->id)
+                            ->where('user_id', $user->id)
+                            ->first();
+
+        // Unlike
+        if ($love) {
+
+            $love->delete();
+
+            $match = Matche::where('product_id', $product->id)
+                ->where('user_one_id', $product->user_id)
+                ->where('user_two_id', $user->id)
+                ->first();
+
+            if ($match) {
+                $match->delete();
+            }
+
+            return response()->json([
+                'status' => true,
+                'type' => 'like',
+                'data' => [
+                    'product' => [
+                        'image' => $product->image,
+                        'price' => $product->price,
+                    ],
+                    'owner' => [
+                        'name' => $product->user->name,
+                        'avatar' => optional($product->user->profile)->avatar,
+                        'image' => optional($product->user->profile)->image,
+                    ],
+                    'liked_by' => [
+                        'name' => $user->name,
+                        'avatar' => optional($user->profile)->avatar,
+                        'image' => optional($user->profile)->image,
+                    ]
+                ]
+            ]);
+        }
+
+        // Like
+        ProductLove::create([
+            'product_id' => $product->id,
+            'user_id' => $user->id
+        ]);
+
+        $match = Matche::firstOrCreate([
+            'product_id' => $product->id,
+            'user_one_id' => $product->user_id,
+            'user_two_id' => $user->id
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'type' => 'like',
+            'data' => [
+                'product' => [
+                    'image' => $product->image,
+                    'price' => $product->price,
+                ],
+                'owner' => [
+                    'name' => $product->user->name,
+                    'avatar' => optional($product->user->profile)->avatar,
+                    'image' => optional($product->user->profile)->image,
+                ],
+                'liked_by' => [
+                    'name' => $user->name,
+                    'avatar' => optional($user->profile)->avatar,
+                    'image' => optional($user->profile)->image,
+                ]
+            ]
+        ]);
+    }
+
+    public function productInterestUsers($productId)
+    {
+        $product = Product::findOrFail($productId);
+
+        // $currentUser = auth()->user();
+        // if ($product->user_id !== $currentUser->id) {
+        //     return response()->json([
+        //         'status' => false,
+        //         'message' => 'Unauthorized'
+        //     ], 403);
+        // }
+
+        $interestedUsers = ProductLove::where('product_id', $product->id)
+            ->with('user.profile')
+            ->get()
+            ->map(function ($love) {
+                return [
+                    'id' => $love->user->id,
+                    'name' => $love->user->name,
+                    'avatar' => optional($love->user->profile)->avatar,
+                    'image' => optional($love->user->profile)->image,
+                    'liked_at' => $love->created_at->toDateTimeString(),
+                ];
+            });
+
+        return response()->json([
+            'status' => true,
+            'product' => [
+                'id' => $product->id,
+                'title' => $product->title
+            ],
+            'interested_users' => $interestedUsers
+        ]);
     }
 }

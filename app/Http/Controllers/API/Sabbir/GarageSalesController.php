@@ -465,57 +465,57 @@ class GarageSalesController extends Controller
         ]);
     }
 
-    // Like / Unlike a garage sale
-    public function toggle(Request $request, $garageId)
-    {
-        $user = $request->user();
-        if (!$user) return response()->json(['status'=>false,'message'=>'Unauthorized'],401);
+    // // Like / Unlike a garage sale
+    // public function toggle(Request $request, $garageId)
+    // {
+    //     $user = $request->user();
+    //     if (!$user) return response()->json(['status'=>false,'message'=>'Unauthorized'],401);
 
-        $garage = GarageSale::findOrFail($garageId);
+    //     $garage = GarageSale::findOrFail($garageId);
 
-        $existing = GarageLove::where('garage_id',$garage->id)
-                              ->where('user_id',$user->id)
-                              ->first();
+    //     $existing = GarageLove::where('garage_id',$garage->id)
+    //                           ->where('user_id',$user->id)
+    //                           ->first();
 
-        if($existing){
-            $existing->delete();
-            $status = 'unliked';
-        } else {
-            GarageLove::create([
-                'garage_id' => $garage->id,
-                'user_id' => $user->id
-            ]);
-            $status = 'liked';
-        }
+    //     if($existing){
+    //         $existing->delete();
+    //         $status = 'unliked';
+    //     } else {
+    //         GarageLove::create([
+    //             'garage_id' => $garage->id,
+    //             'user_id' => $user->id
+    //         ]);
+    //         $status = 'liked';
+    //     }
 
-        return response()->json([
-            'status' => true,
-            'message' => "Garage {$status} successfully",
-            'total_loves' => $garage->loves()->count()
-        ]);
-    }
+    //     return response()->json([
+    //         'status' => true,
+    //         'message' => "Garage {$status} successfully",
+    //         'total_loves' => $garage->loves()->count()
+    //     ]);
+    // }
 
     // Get all users who loved a garage sale
-    public function users($garageId)
-    {
-        $garage = GarageSale::with('lovedUsers:id,name,email')->find($garageId);
+    // public function users($garageId)
+    // {
+    //     $garage = GarageSale::with('lovedUsers:id,name,email')->find($garageId);
 
-        if (!$garage) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Garage Sale not found.',
-            ], 404);
-        }
+    //     if (!$garage) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Garage Sale not found.',
+    //         ], 404);
+    //     }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Users who loved this garage sale fetched successfully.',
-            'data' => [
-                'total_loves' => $garage->loves()->count(),
-                'users' => $garage->lovedUsers
-            ]
-        ], 200);
-    }
+    //     return response()->json([
+    //         'success' => true,
+    //         'message' => 'Users who loved this garage sale fetched successfully.',
+    //         'data' => [
+    //             'total_loves' => $garage->loves()->count(),
+    //             'users' => $garage->lovedUsers
+    //         ]
+    //     ], 200);
+    // }
 
     // Garage Item Details
     public function garageItemShow($id)

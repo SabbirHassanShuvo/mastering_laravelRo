@@ -444,7 +444,10 @@ class AuthController extends BaseController
         $user = auth('api')->user();
 
         if (!$user) {
-            return response()->json(['message' => 'Unauthorized'], 401);
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized'
+            ], 401);
         }
 
         $validated = $request->validate([
@@ -456,10 +459,8 @@ class AuthController extends BaseController
         ]);
 
         // Update user table
-        if (array_key_exists('name', $validated)) {
-            $user->update([
-                'name' => $validated['name']
-            ]);
+        if (isset($validated['name'])) {
+            $user->update(['name' => $validated['name']]);
         }
 
         // Get or create profile
@@ -472,26 +473,23 @@ class AuthController extends BaseController
             'bio'       => $validated['bio'] ?? $profile->bio,
         ]);
 
-        // Handle avatar upload
+        // Avatar upload
         if ($request->hasFile('avatar')) {
-
             if ($profile->avatar && file_exists(public_path($profile->avatar))) {
                 unlink(public_path($profile->avatar));
             }
 
-            $path = $request->file('avatar')
-                            ->store('profile/avatar', 'public');
-
+            $path = $request->file('avatar')->store('profile/avatar', 'public');
             $profile->avatar = 'storage/' . $path;
         }
 
         $profile->save();
 
         return response()->json([
-            'status'  => true,
+            'success' => true,
             'message' => 'Profile updated successfully',
-            'data'    => $user->load('profile')
-        ]);
+            'data' => $user->load('profile')
+        ], 200);
     }
 
     public function changePassword(Request $request)

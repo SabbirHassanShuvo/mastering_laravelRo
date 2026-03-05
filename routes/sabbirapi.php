@@ -19,9 +19,12 @@ Route::group(['middleware' => 'auth:api','prefix' => 'products'], function ($rou
     Route::get('/{id}/edit', [ProductsController::class,'edit']);
     Route::post('/update/{id}', [ProductsController::class,'update']);
 
-    // Additional routes for product management
+    // Listing management routes
     Route::post('/relist/{id}', [ProductsController::class, 'relist']);
     Route::get('/listed-products-by-status', [ProductsController::class, 'productsByStatus']);
+    Route::get('/listed-products/{id}', [ProductsController::class, 'productDetails']);
+    Route::get('/{productId}/interests', [ProductsController::class, 'productInterestUsers']);
+
     Route::get('/search', [ProductsController::class, 'search']);
     Route::post('/filter', [ProductsController::class, 'filterProducts']);
 
@@ -32,8 +35,7 @@ Route::group(['middleware' => 'auth:api','prefix' => 'products'], function ($rou
     
 
     // Love/Unlove routes
-    Route::post('/{product}/love', [ProductsController::class, 'toggle']);
-    Route::get('/{product}/loves', [ProductsController::class, 'allLoves']);
+    Route::post('/{id}/love',[ProductsController::class,'toggle']);
 
     // Category-wise garage sales
     Route::get('/categories', [ProductsController::class, 'categories']);

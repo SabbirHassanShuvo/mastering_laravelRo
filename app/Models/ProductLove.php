@@ -13,7 +13,8 @@ class ProductLove extends Model
     
     protected $table = 'product_loves';
 
-    protected $fillable = ['product_id', 'user_id'];
+    protected $fillable = ['product_id','user_id'];
+
 
     public function user()
     {

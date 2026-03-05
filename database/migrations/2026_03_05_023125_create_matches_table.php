@@ -11,14 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('product_loves', function (Blueprint $table) {
+        Schema::create('matches', function (Blueprint $table) {
             $table->id();
             $table->foreignId('product_id')->constrained()->onDelete('cascade');
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+
+            $table->foreignId('user_one_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('user_two_id')->constrained('users')->onDelete('cascade');
+
             $table->timestamps();
 
-            $table->unique(['product_id','user_id']);
+            $table->unique(['product_id','user_one_id','user_two_id']);
         });
+
     }
 
     /**
@@ -26,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('product_loves');
+        Schema::dropIfExists('matches');
     }
 };

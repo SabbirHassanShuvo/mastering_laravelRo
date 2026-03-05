@@ -42,7 +42,7 @@ class HomeController extends Controller
         ", [$lat, $lng, $lat])
         ->with([
             'photos',
-            'user:id',
+            'user:id,name',
             'user.profile:id,user_id,user_name,avatar' 
         ])
         ->where('status', 'active')
@@ -58,19 +58,28 @@ class HomeController extends Controller
     }
 
     // Product detsails based on product id
-    public function productDetail($id)
+    public function productDetail(Request $request, $id)
     {
-        $user = auth()->user();
+        // Validate incoming location
+        $validator = Validator::make($request->all(), [
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+        ], [
+            'latitude.required' => 'Latitude is required.',
+            'latitude.numeric' => 'Latitude must be a valid number.',
+            'longitude.required' => 'Longitude is required.',
+            'longitude.numeric' => 'Longitude must be a valid number.',
+        ]);
 
-        if (!$user->latitude || !$user->longitude) {
+        if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'User location not found'
-            ], 400);
+                'message' => $validator->errors()->first()
+            ], 422);
         }
 
-        $lat = $user->latitude;
-        $lng = $user->longitude;
+        $lat = $request->latitude;
+        $lng = $request->longitude;
 
         $product = Product::selectRaw("
                 products.*,
@@ -144,7 +153,7 @@ class HomeController extends Controller
         ", [$lat, $lng, $lat])
         ->with([
             'items.images', 
-            'user:id',
+            'user:id,name',
                 'user.profile:id,user_id,user_name,avatar'
         ])
         ->where('status', 'active')
@@ -190,7 +199,7 @@ class HomeController extends Controller
             ", [$lat, $lng, $lat])
             ->with([
                 'items.images', 
-                'user:id',
+                'user:id,name',
                     'user.profile:id,user_id,user_name,avatar'
             ])
             ->where('id', $id)

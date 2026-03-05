@@ -79,9 +79,4 @@ class Product extends Model
     {
         return $this->hasMany(ProductLove::class);
     }
-
-    public function lovedUsers()
-    {
-        return $this->belongsToMany(User::class, 'product_loves');
-    }
 }

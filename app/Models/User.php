@@ -113,4 +113,8 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany(Contact::class);
     }
 
+    public function lovedProducts()
+    {
+        return $this->belongsToMany(Product::class,'product_loves');
+    }
 }
