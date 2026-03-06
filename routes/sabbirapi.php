@@ -32,7 +32,11 @@ Route::group(['middleware' => 'auth:api','prefix' => 'products'], function ($rou
     Route::post('/{product}/archive', [ProductsController::class, 'archive']);
     Route::post('/{product}/unarchive', [ProductsController::class, 'unarchive']);
     Route::get('/my-archived-products', [ProductsController::class, 'myArchivedProducts']);
-    
+    Route::get('/archived-product-details/{id}', [ProductsController::class, 'archivedProductDetails']);
+
+    // Product Save And Unsave routes
+    Route::post('/{id}/save', [ProductsController::class, 'toggleSave']);
+    Route::get('/saved', [ProductsController::class, 'fetchSavedProducts']);
 
     // Love/Unlove routes
     Route::post('/{id}/love',[ProductsController::class,'toggle']);

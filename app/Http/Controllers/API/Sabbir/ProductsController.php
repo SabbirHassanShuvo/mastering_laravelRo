@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Matche;
 use App\Models\Product;
 use App\Models\ProductLove;
+use App\Models\SavedProduct;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -265,14 +266,65 @@ class ProductsController extends Controller
 
     public function myArchivedProducts()
     {
-        $archives = ArchivedProduct::with('product.photos')
-            ->where('user_id', auth()->id())
+        $archives = ArchivedProduct::where('user_id', auth()->id())
+            ->with(['product' => function ($query) {
+                $query->withCount('loves');
+            }])
             ->latest()
-            ->get();
+            ->get()
+            ->map(function ($archive) {
+
+                if (!$archive->product) {
+                    return null;
+                }
+
+                $product = $archive->product;
+
+                return [
+                    'id' => $product->id,
+                    'title' => $product->title,
+                    'price' => $product->price,
+                    'product_image' => $product->product_image,
+                    'status' => $product->status,
+                    'interest_count' => $product->loves_count
+                ];
+            })
+            ->filter()
+            ->values();
 
         return response()->json([
             'status' => true,
             'data' => $archives
+        ]);
+    }
+
+    public function archivedProductDetails($id)
+    {
+        $archive = ArchivedProduct::where('user_id', auth()->id())
+            ->where('product_id', $id)
+            ->with(['product.photos', 'product.category'])
+            ->firstOrFail();
+
+        $product = $archive->product;
+
+        return response()->json([
+            'status' => true,
+            'data' => [
+                'photos' => $product->photos->pluck('photo_url'), 
+                'title' => $product->title,
+                'price' => $product->price,
+                'status' => $product->status,
+                'created_at' => $product->created_at->toDateTimeString(),
+                'condition' => $product->condition_status,
+                'category' => [
+                    'id' => $product->category->id,
+                    'name' => $product->category->name
+                ],
+                'interest_count' => $product->loves()->count(),
+                'description' => $product->description,
+                'latitude' => $product->pickup_latitude,
+                'longitude' => $product->pickup_longitude,
+            ]
         ]);
     }
 
@@ -618,6 +670,58 @@ class ProductsController extends Controller
                 'title' => $product->title
             ],
             'interested_users' => $interestedUsers
+        ]);
+    }
+
+    // Save or toggle a product
+    public function toggleSave(Request $request, $productId)
+    {
+        $user = $request->user();
+
+        $saved = SavedProduct::where('user_id', $user->id)
+            ->where('product_id', $productId)
+            ->first();
+
+        if ($saved) {
+            $saved->delete();
+            return response()->json([
+                'status' => true,
+                'message' => 'Product removed from saved list'
+            ]);
+        }
+
+        SavedProduct::create([
+            'user_id' => $user->id,
+            'product_id' => $productId,
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Product saved successfully'
+        ]);
+    }
+
+    // Fetch all saved products
+    public function fetchSavedProducts(Request $request)
+    {
+        $user = $request->user();
+
+        $savedProducts = SavedProduct::with('product')
+            ->where('user_id', $user->id)
+            ->get()
+            ->map(function($item) {
+                return [
+                    'id' => $item->product->id,
+                    'title' => $item->product->title,
+                    'price' => $item->product->price,
+                    'product_image' => $item->product->product_image,
+                    'status' => 'saved'
+                ];
+            });
+
+        return response()->json([
+            'status' => true,
+            'data' => $savedProducts
         ]);
     }
 }
