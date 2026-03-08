@@ -26,3 +26,4 @@ Artisan::command('inspire', function () {
         // Test run - every minute
         Schedule::command('app:garage-sale-time-rules')->everyMinute();
         Schedule::command('app:product-time-rules')->everyMinute();
+        Schedule::command('app:expire-spotlights')->everyTenMinutes();

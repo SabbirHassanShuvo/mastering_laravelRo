@@ -35,6 +35,8 @@ class Product extends Model
     protected $casts = [
         'expires_at' => 'datetime',
         'posted_at'  => 'datetime',
+        'spotlight_start_date' => 'datetime',
+        'spotlight_end_date'   => 'datetime',
     ];
 
     // Relations

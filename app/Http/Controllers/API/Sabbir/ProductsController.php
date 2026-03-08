@@ -18,10 +18,31 @@ class ProductsController extends Controller
     // Store product (7-day active, handle multiple photos)
     public function store(Request $request)
     {
-        if (!$request->user()) {
+        $user = $request->user();
+        if (!$user) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
+        // Total lifetime posts
+        $totalPosts = Product::where('user_id', $user->id)->count();
+        if ($totalPosts >= 20) {
+            return response()->json([
+                'message' => 'You have reached the maximum limit of 20 posts in total.'
+            ], 403);
+        }
+
+        // Posts in last 24 hours
+        $last24HoursPosts = Product::where('user_id', $user->id)
+            ->where('created_at', '>=', now()->subDay())
+            ->count();
+
+        if ($last24HoursPosts >= 5) {
+            return response()->json([
+                'message' => 'You can post maximum 5 times in 24 hours.'
+            ], 403);
+        }
+
+        // Validation
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
             'title' => 'required|string|max:255',
@@ -37,7 +58,7 @@ class ProductsController extends Controller
             'is_urgent' => 'nullable|boolean',
         ]);
 
-        // Expiry Logic
+        // Expiry logic
         if ($validated['product_type'] === 'paid') {
             $expiresAt = now()->addDays(7);
         } elseif ($validated['product_type'] === 'free') {
@@ -46,18 +67,8 @@ class ProductsController extends Controller
             $expiresAt = null;
         }
 
-
-        // // Expiry Logic for testing (1 minute)
-        // if ($validated['product_type'] === 'paid') {
-        //     $expiresAt = now()->addMinutes(1); // paid products expire in 1 minute
-        // } elseif ($validated['product_type'] === 'free') {
-        //     $expiresAt = now()->addSeconds(rand(30, 60)); // free products expire in 30–60 seconds
-        // } else {
-        //     $expiresAt = null; // garage_sale or others don't expire
-        // }
-
         $product = new Product();
-        $product->user_id = auth()->id();
+        $product->user_id = $user->id;
         $product->category_id = $validated['category_id'];
         $product->title = $validated['title'];
         $product->product_type = $validated['product_type'];
@@ -72,7 +83,6 @@ class ProductsController extends Controller
         $product->posted_at = now();
         $product->expires_at = $expiresAt;
 
-        // Urgent / Same-Day Pickup
         $product->is_urgent = $validated['is_urgent'] ?? false;
         $product->urgent_pickup_date = $product->is_urgent ? now()->toDateString() : null;
         $product->urgent_pickup_notes = $request->input('urgent_pickup_notes');

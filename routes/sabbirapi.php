@@ -6,6 +6,7 @@ use App\Http\Controllers\API\Sabbir\HelpAndSupportController;
 use App\Http\Controllers\API\Sabbir\HomeController;
 use App\Http\Controllers\API\Sabbir\ProductsController;
 use App\Http\Controllers\API\Sabbir\ProfileController;
+use App\Http\Controllers\Api\Sabbir\SpotlightController;
 use App\Http\Controllers\API\Sabbir\WebhookController;
 use Illuminate\Support\Facades\Route;
 
@@ -43,6 +44,13 @@ Route::group(['middleware' => 'auth:api','prefix' => 'products'], function ($rou
 
     // Category-wise garage sales
     Route::get('/categories', [ProductsController::class, 'categories']);
+
+    // Get spotlight boost fee
+    // Route::get('/spotlight/fee', [SpotlightController::class, 'getBoostFee']);
+
+    // Initiate spotlight payment
+    Route::post('/spotlight/initiate', [SpotlightController::class, 'initiatePayment']);
+    Route::post('/spotlight/confirm', [SpotlightController::class, 'confirmPayment']);
     
 });
 Route::group(['middleware' => 'auth:api','prefix' => 'garage'], function ($router) {

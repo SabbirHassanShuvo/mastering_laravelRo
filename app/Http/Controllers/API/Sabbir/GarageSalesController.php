@@ -105,7 +105,6 @@ class GarageSalesController extends Controller
             'date'             => 'required|date',
             'pickup_location'  => 'required|string|max:255',
             'sale_start_date'  => 'required|date',
-            'sale_end_date'    => 'required|date|after_or_equal:sale_start_date',
             'items'            => 'required|array|min:1',
             'items.*.title'    => 'required|string|max:255',
         ]);
@@ -117,35 +116,24 @@ class GarageSalesController extends Controller
             ], 422);
         }
 
-        // Upload images FIRST, collect file paths before Stripe metadata
-        $processedItems = [];
+        // Auto calculate sale_end_date (7 days after sale_start_date)
+        $saleStartDate = Carbon::parse($request->sale_start_date);
+        $saleEndDate   = $saleStartDate->copy()->addDays(7);
 
+        // Process items & images
+        $processedItems = [];
         foreach ($request->items as $index => $itemData) {
             $images = [];
-
             $uploadedImages = $request->file("items.{$index}.images") ?? [];
 
             foreach ($uploadedImages as $file) {
                 if ($file instanceof UploadedFile && $file->isValid()) {
-                    // Store file → get path
                     $path = $file->store('garage_items', 'public');
-                    $images[] = $path; // e.g. "garage_items/abc123.jpg"
+                    $images[] = $path;
                 }
             }
 
-            // foreach ($uploadedImages as $file) {
-            //     if ($file instanceof UploadedFile && $file->isValid()) {
-
-            //         $path = $file->store('garage_items', 'public');
-
-            //         // only filename
-            //         $filename = basename($path);
-
-            //         $images[] = $filename;
-            //     }
-            // }
-
-            // Also handle base64 strings if frontend sends them
+            // handle base64 or URLs
             if (!empty($itemData['images']) && is_array($itemData['images'])) {
                 foreach ($itemData['images'] as $img) {
                     if (is_string($img) && str_starts_with($img, 'data:image')) {
@@ -154,7 +142,7 @@ class GarageSalesController extends Controller
                         Storage::disk('public')->put($filename, $decoded);
                         $images[] = $filename;
                     } elseif (is_string($img) && filter_var($img, FILTER_VALIDATE_URL)) {
-                        $images[] = $img; // already a URL, keep as-is
+                        $images[] = $img;
                     }
                 }
             }
@@ -163,23 +151,23 @@ class GarageSalesController extends Controller
                 'title'       => $itemData['title'],
                 'price'       => $itemData['price'] ?? null,
                 'description' => $itemData['description'] ?? null,
-                'images'      => $images, // now just plain file paths / URLs
+                'images'      => $images,
             ];
         }
 
-        // Metadata for Stripe (only serializable data)
+        // Stripe metadata
         $metadata = [
             'user_id'         => auth()->id(),
             'event_title'     => $request->event_title,
             'description'     => $request->description ?? '',
             'date'            => $request->date,
             'pickup_location' => $request->pickup_location,
-            'sale_start_date' => $request->sale_start_date,
-            'sale_end_date'   => $request->sale_end_date,
+            'sale_start_date' => $saleStartDate->toDateTimeString(),
+            'sale_end_date'   => $saleEndDate->toDateTimeString(),
             'latitude'        => $request->latitude ?? '',
             'longitude'       => $request->longitude ?? '',
             'expires_at'      => now()->addDays(7)->toDateTimeString(),
-            'items'           => json_encode($processedItems), // clean JSON, no file objects
+            'items'           => json_encode($processedItems),
         ];
 
         $payment = $this->stripeService->createPaymentIntent($metadata);

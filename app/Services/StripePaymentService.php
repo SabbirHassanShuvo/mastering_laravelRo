@@ -37,26 +37,32 @@ class StripePaymentService
 
     // ── Spotlight Boost — amount comes from DB via SpotlightService ──
 
-    public function createSpotlightPaymentIntent(array $metadata, float $fee): array
+    // Retrieve PaymentIntent from Stripe
+    public function retrievePaymentIntent(string $paymentIntentId)
+    {
+        return PaymentIntent::retrieve($paymentIntentId);
+    }
+
+    // Create PaymentIntent for Spotlight
+    public function createSpotlightPaymentIntent(array $metadata, float $amount): array
     {
         try {
-            // Convert dollars to cents for Stripe (e.g. 2.99 → 299, 4.99 → 499)
-            $amountInCents = (int) round($fee * 100);
-
-            $intent = PaymentIntent::create([
-                'amount'               => $amountInCents,
-                'currency'             => 'usd',
+            $intent = \Stripe\PaymentIntent::create([
+                'amount' => $amount * 100,
+                'currency' => 'usd',
+                'metadata' => $metadata,
                 'payment_method_types' => ['card'],
-                'metadata'             => $metadata,
             ]);
 
             return [
-                'status'            => 'success',
-                'client_secret'     => $intent->client_secret,
+                'client_secret' => $intent->client_secret,
                 'payment_intent_id' => $intent->id,
             ];
         } catch (\Exception $e) {
-            return ['status' => 'error', 'message' => $e->getMessage()];
+            return [
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ];
         }
     }
 
