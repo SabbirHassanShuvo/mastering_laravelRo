@@ -10,7 +10,7 @@
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="javascript:void(0);">Dashboard</a></li>
                 <li class="breadcrumb-item active" aria-current="page">
-                    <Cap></Cap>ategories
+                    Categories
                 </li>
             </ol>
         </div>
@@ -119,16 +119,12 @@
                     _token: "<?php echo e(csrf_token()); ?>"
                 },
                 success: function(response) {
-                    console.log(response, response[0], response[1]);
                     // Reloade DataTable
-                    $('#datatable').DataTable().ajax.reload();
+                    $('#datatable').DataTable().ajax.reload(null, false);
                     if (response.success === true) {
-                        // show toast message
-                        toastr.success(response[1]);
-                    } else if (response.errors) {
-                        toastr.error(response[0]);
+                        toastr.success(response.message);
                     } else {
-                        toastr.error(response[1]);
+                        toastr.error(response.message || 'Operation failed');
                     }
                 },
                 error: function(error) {

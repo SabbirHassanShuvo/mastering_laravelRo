@@ -18,6 +18,7 @@ class Product extends Model
     const STATUS_ACTIVE = 'active';
     const STATUS_EXPIRED = 'expired';
     const STATUS_SOLD = 'sold';
+    const STATUS_ARCHIVED = 'archived';
     protected $fillable = [
         'user_id',
         'category_id',
@@ -80,5 +81,10 @@ class Product extends Model
     public function loves()
     {
         return $this->hasMany(ProductLove::class);
+    }
+
+    public function spotlightPayments()
+    {
+        return $this->hasMany(SpotlightPayment::class);
     }
 }

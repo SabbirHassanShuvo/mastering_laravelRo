@@ -20,6 +20,24 @@ class SpotlightPayment extends Model
         'spotlight_end_at'   => 'datetime',
     ];
 
+    // Scopes
+    public function scopeSuccessful($query)
+    {
+        return $query->where($this->getTable() . '.status', 'paid');
+    }
+
+    public function scopePending($query)
+    {
+        return $query->where($this->getTable() . '.status', 'pending');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where($this->getTable() . '.status', 'paid')
+                     ->where($this->getTable() . '.spotlight_start_at', '<=', now())
+                     ->where($this->getTable() . '.spotlight_end_at', '>=', now());
+    }
+
     public function product() { return $this->belongsTo(Product::class); }
     public function user()    { return $this->belongsTo(User::class); }
 }

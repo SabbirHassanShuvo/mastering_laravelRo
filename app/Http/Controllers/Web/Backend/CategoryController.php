@@ -16,11 +16,9 @@ class CategoryController extends Controller
             $data = Category::latest()->get();
             return DataTables::of($data)
                 ->addIndexColumn()
-                ->addColumn('title', fn($data) => $data->title)
-                ->addColumn('slug', fn($data) => $data->slug)
                 ->addColumn('image', function($data){
                     $img = $data->image ? asset($data->image) : 'https://via.placeholder.com/60';
-                    return '<img src="'.$img.'" width="60"/>';
+                    return '<img src="'.$img.'" width="60" style="border-radius:6px;"/>';
                 })
                 ->addColumn('status', function($data){
                     $backgroundColor = $data->status ? '#4CAF50' : '#ccc';
@@ -29,9 +27,14 @@ class CategoryController extends Controller
                 })
                 ->addColumn('action', function ($data) {
                     return '
-                    <button onclick="edit(' . $data->id . ')" class="btn btn-info btn-sm"><i class="mdi mdi-pencil"></i></button>
-                    <button onclick="showDeleteConfirm(' . $data->id . ')" class="btn btn-danger btn-sm"><i class="mdi mdi-delete"></i></button>
-                    ';
+                    <div class="d-flex gap-1">
+                        <button onclick="edit(' . $data->id . ')" class="btn btn-soft-info btn-sm" title="Edit">
+                            <i class="ri-pencil-line"></i>
+                        </button>
+                        <button onclick="showDeleteConfirm(' . $data->id . ')" class="btn btn-soft-danger btn-sm" title="Delete">
+                            <i class="ri-delete-bin-line"></i>
+                        </button>
+                    </div>';
                 })
                 ->rawColumns(['image','status','action'])
                 ->make(true);

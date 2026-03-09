@@ -58,9 +58,41 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link menu-link <?php echo e(request()->routeIs('backend.feature.category.*') ? 'active' : ''); ?>"
-                        href="<?php echo e(route('backend.feature.category.index')); ?>">
-                        <i class="ri-dashboard-line"></i> <span>Categories</span>
+                    <a class="nav-link menu-link <?php echo e(request()->routeIs('backend.products.*') ? 'active' : ''); ?>"
+                        href="<?php echo e(route('backend.products.index')); ?>">
+                        <i class="ri-store-2-line"></i>
+                        <span>Products</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link menu-link <?php echo e(request()->routeIs('backend.spotlight.*') ? 'active' : ''); ?>"
+                        href="#sidebarSpotlight" data-bs-toggle="collapse" role="button" aria-expanded="false"
+                        aria-controls="sidebarSpotlight">
+                        <i class="ri-flashlight-line"></i>
+                        <span>Boost Payments</span>
+                    </a>
+                    <div class="collapse menu-dropdown <?php echo e(request()->routeIs('backend.spotlight.*') ? 'show' : ''); ?>"
+                        id="sidebarSpotlight">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item">
+                                <a href="<?php echo e(route('backend.spotlight.index')); ?>"
+                                    class="nav-link <?php echo e(request()->routeIs('backend.spotlight.index')); ?>">Dashboard</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="<?php echo e(route('backend.spotlight.cities')); ?>"
+                                    class="nav-link <?php echo e(request()->routeIs('backend.spotlight.cities')); ?>">City
+                                    Analytics</a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
+
+                <li class="nav-item">
+                    <a class="nav-link menu-link <?php echo e(request()->routeIs('backend.garage.*') ? 'active' : ''); ?>"
+                        href="<?php echo e(route('backend.garage.index')); ?>">
+                        <i class="ri-home-gear-line"></i>
+                        <span>Garage Sales</span>
                     </a>
                 </li>
                 
