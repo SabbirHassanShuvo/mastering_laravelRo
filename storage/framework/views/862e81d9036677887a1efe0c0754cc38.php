@@ -90,10 +90,24 @@
 
                 <li class="nav-item">
                     <a class="nav-link menu-link <?php echo e(request()->routeIs('backend.garage.*') ? 'active' : ''); ?>"
-                        href="<?php echo e(route('backend.garage.index')); ?>">
+                        href="#sidebarGarage" data-bs-toggle="collapse" role="button" aria-expanded="false"
+                        aria-controls="sidebarGarage">
                         <i class="ri-home-gear-line"></i>
                         <span>Garage Sales</span>
                     </a>
+                    <div class="collapse menu-dropdown <?php echo e(request()->routeIs('backend.garage.*') ? 'show' : ''); ?>"
+                        id="sidebarGarage">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item">
+                                <a href="<?php echo e(route('backend.garage.index')); ?>"
+                                    class="nav-link <?php echo e(request()->routeIs('backend.garage.index')); ?>">All Events</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="<?php echo e(route('backend.garage.analytics')); ?>"
+                                    class="nav-link <?php echo e(request()->routeIs('backend.garage.analytics')); ?>">Analytics</a>
+                            </li>
+                        </ul>
+                    </div>
                 </li>
                 
                 <!-- end Dashboard Menu -->

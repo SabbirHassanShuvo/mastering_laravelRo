@@ -63,4 +63,12 @@ class GarageSale extends Model
     {
         return $this->status === 'active' && $this->isPaid();
     }
+
+    /**
+     * Scope a query to only include active garage sales.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
 }

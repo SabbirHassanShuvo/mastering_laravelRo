@@ -18,7 +18,7 @@ class CategoryController extends Controller
                 ->addIndexColumn()
                 ->addColumn('image', function($data){
                     $img = $data->image ? asset($data->image) : 'https://via.placeholder.com/60';
-                    return '<img src="'.$img.'" width="60" style="border-radius:6px;"/>';
+                    return '<img src="'.$img.'" class="category-img"/>';
                 })
                 ->addColumn('status', function($data){
                     $backgroundColor = $data->status ? '#4CAF50' : '#ccc';
@@ -45,8 +45,9 @@ class CategoryController extends Controller
 
     public function create()
     {
-        $data['statuses'] = Category::_status();
-        return view("backend.layout.categories.form", $data);
+        return response()->json([
+            'statuses' => Category::_status()
+        ]);
     }
 
     public function store(Request $request)
@@ -68,15 +69,19 @@ class CategoryController extends Controller
 
         Category::create($data);
 
-        return redirect()->route('backend.feature.category.index')
-                         ->with('success','Category created successfully');
+        return response()->json([
+            'success' => true,
+            'message' => 'Category created successfully'
+        ]);
     }
 
     public function edit(Category $category)
     {
-        $data['category'] = $category;
-        $data['statuses'] = Category::_status();
-        return view("backend.layout.categories.form", $data);
+        return response()->json([
+            'success' => true,
+            'category' => $category,
+            'statuses' => Category::_status()
+        ]);
     }
 
     public function update(Request $request, Category $category)
@@ -98,8 +103,10 @@ class CategoryController extends Controller
 
         $category->update($data);
 
-        return redirect()->route('backend.feature.category.index')
-                         ->with('success','Category updated successfully');
+        return response()->json([
+            'success' => true,
+            'message' => 'Category updated successfully'
+        ]);
     }
 
     public function destroy(Category $category)

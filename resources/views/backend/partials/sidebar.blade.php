@@ -104,10 +104,24 @@
 
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ request()->routeIs('backend.garage.*') ? 'active' : '' }}"
-                        href="{{ route('backend.garage.index') }}">
+                        href="#sidebarGarage" data-bs-toggle="collapse" role="button" aria-expanded="false"
+                        aria-controls="sidebarGarage">
                         <i class="ri-home-gear-line"></i>
                         <span>Garage Sales</span>
                     </a>
+                    <div class="collapse menu-dropdown {{ request()->routeIs('backend.garage.*') ? 'show' : '' }}"
+                        id="sidebarGarage">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item">
+                                <a href="{{ route('backend.garage.index') }}"
+                                    class="nav-link {{ request()->routeIs('backend.garage.index') }}">All Events</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('backend.garage.analytics') }}"
+                                    class="nav-link {{ request()->routeIs('backend.garage.analytics') }}">Analytics</a>
+                            </li>
+                        </ul>
+                    </div>
                 </li>
                 {{-- <li class="nav-item">
                     <a class="nav-link menu-link  {{ getPageStatus('backend.dashboard.*', 'collapsed active') }}"

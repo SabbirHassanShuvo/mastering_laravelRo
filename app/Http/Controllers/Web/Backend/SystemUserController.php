@@ -9,7 +9,9 @@ use App\Http\Requests\UserRequest;
 use Spatie\Permission\Models\Role;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Yajra\DataTables\Facades\DataTables;
+use App\Mail\SuspensionNotification;
 
 class SystemUserController extends Controller
 {
@@ -19,31 +21,28 @@ class SystemUserController extends Controller
     }
 
     public function index(Request $request){
-        $users = User::orderBy('id', 'desc')->get();
         if($request->ajax()){
+            $users = User::orderBy('id', 'desc')->get();
             return DataTables::of($users)
             ->addIndexColumn()
-            ->addColumn('name', function ($user) {
-                return $user->name;
-            })
-            ->addColumn('email', function ($user) {
-                return $user->email;
-            })
             ->addColumn('status', function ($data) {
                 $backgroundColor  = $data->status ? '#4CAF50' : '#ccc';
                 $sliderTranslateX = $data->status ? '26px' : '2px';
-                
                 return getStatusHTML($data, $backgroundColor, $sliderTranslateX);
             })
             ->addColumn('action', function ($data) {
-                return '
-                <button onclick="edit(' . $data->id . ')" type="button" class="btn btn-info btn-sm">
-                    <i class="mdi mdi-pencil"></i>
-                </button>
-                <button type="button" onclick="showDeleteConfirm(' . $data->id . ')" class="btn btn-danger btn-sm del">
-                    <i class="mdi mdi-delete"></i>
-                </button>
-            ';
+                $editBtn = '<button onclick="edit(' . $data->id . ')" type="button" class="btn btn-soft-primary btn-sm action-btn">
+                                <i class="ri-pencil-fill"></i>
+                            </button>';
+                $deleteBtn = '';
+                
+                if ($data->id != Auth::id()) {
+                    $deleteBtn = '<button type="button" onclick="showDeleteConfirm(' . $data->id . ')" class="btn btn-soft-danger btn-sm action-btn">
+                                    <i class="ri-delete-bin-fill"></i>
+                                </button>';
+                }
+
+                return '<div class="d-flex gap-2 justify-content-center">' . $editBtn . $deleteBtn . '</div>';
             })
             ->rawColumns([ 'status', 'action'])
             ->make(true);
@@ -51,12 +50,13 @@ class SystemUserController extends Controller
         return view('backend.layout.users.system_users.index');
     }
     public function create(){
-        return view('backend.layout.users.system_users.form');
+        return response()->json([
+            'success' => true
+        ]);
     }
     public function store(UserRequest $request){
-        // dd($request->all());
         $data = $request->validated();
-        // dd($data);
+        
         $user = new User;
         $user->name = $data['name'];
         $user->email = $data['email'];
@@ -65,58 +65,104 @@ class SystemUserController extends Controller
         $user->role = User::roles()['ADMIN'];
         $user->save();
         
-        return redirect()->route('backend.system-user.index')->with('success','System User Successfully created');
+        return response()->json([
+            'success' => true,
+            'message' => 'System User Successfully created'
+        ]);
     }
 
     public function edit(User $system_user){
-        
-        return view('backend.layout.users.system_users.form', compact('system_user'));
+        return response()->json([
+            'success' => true,
+            'user' => $system_user
+        ]);
     }
 
     
     public function update(Request $request, User $system_user){
-        // dd($request->all());
         $request->validate([
-            'name' => 'required',
-            // 'email'=> 'required|email',
-            'password' => [['nullable', new PasswordRule]],
+            'name' => 'required|string|max:255',
+            'email'=> 'required|email|unique:users,email,'.$system_user->id,
+            'password' => ['nullable', new PasswordRule],
         ]);
-        try {
-            if(!is_null($request['password'])){
-                $system_user->password = bcrypt($request['password']);
-                $system_user->update();
-            }
-            $data = $request->only(['name','email']);
-            $system_user->update($data);
-            
-        } catch (\Exception $e) {
-            return redirect()->route('backend.system-user.index')->with('error','System User Failed to Update,,,'.$e->getMessage());
-        }
-        return redirect()->route('backend.system-user.index')->with('success','System User Successfully created');
-    }
 
-    public function status($id){
         try {
-            $system_user = User::find($id);
-            $system_user->status = !$system_user->status;
+            $system_user->name = $request->name;
+            $system_user->email = $request->email;
+            
+            if ($request->filled('password')) {
+                $system_user->password = bcrypt($request->password);
+            }
+            
             $system_user->update();
 
-            return response()->json(['status'=> 'success', 'message', 'Status Changed Successfully']);
+            return response()->json([
+                'success' => true,
+                'message' => 'System User Successfully updated'
+            ]);
         } catch (\Exception $e) {
-            return response()->json(['status'=> 'error', 'message', 'Status Change Failed ...'. $e->getMessage() ]);
-
+            return response()->json([
+                'success' => false,
+                'message' => 'System User Failed to Update: '.$e->getMessage()
+            ], 500);
         }
-        
+    }
+
+    public function status(Request $request, $id){
+        try {
+            if ($id == Auth::id()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You cannot suspend your own account.'
+                ], 403);
+            }
+
+            $system_user = User::find($id);
+            $system_user->status = !$system_user->status;
+            
+            if ($system_user->status == 0) {
+                $system_user->suspension_reason = $request->reason ?? 'No reason provided';
+                $system_user->suspended_at = now();
+                
+                // Send suspension email
+                Mail::to($system_user->email)->send(new SuspensionNotification($system_user, $system_user->suspension_reason));
+            } else {
+                $system_user->suspension_reason = null;
+                $system_user->suspended_at = null;
+            }
+            
+            $system_user->update();
+
+            $statusText = $system_user->status ? 'Activated' : 'Suspended';
+            return response()->json([
+                'success' => true,
+                'message' => 'User ' . $statusText . ' Successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Status Change Failed: '. $e->getMessage() 
+            ], 500);
+        }
     }
     public function destroy(User $system_user){
         try {
             if($system_user->id == Auth::user()->id){
-                return response()->json(['status'=> 'error', 'message', 'Can\'t delete own id ...']);
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'You cannot delete your own account.'
+                ], 403);
             }
             $system_user->delete();
+            return response()->json([
+                'success' => true,
+                'message' => 'User deleted Successfully'
+            ]);
         } catch (\Exception $e) {
-            return response()->json(['status'=> 'error', 'message', 'User delete Failed ...'. $e->getMessage() ]);
+            return response()->json([
+                'success' => false, 
+                'message' => 'User delete Failed: '. $e->getMessage() 
+            ], 500);
         }
-        return response()->json(['status'=> 'success', 'message', 'User deleted Successfully']);
     }
 }

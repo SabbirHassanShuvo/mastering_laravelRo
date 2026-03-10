@@ -23,9 +23,14 @@ Route::prefix('backend')->name('backend.')->group(function () {
     // Garage Sales Management
     Route::prefix('garage-sales')->name('garage.')->group(function () {
         Route::get('/', [GarageSalesController::class, 'index'])->name('index');
+        Route::get('/analytics', [GarageSalesController::class, 'analytics'])->name('analytics');
+        Route::get('/export/csv', [GarageSalesController::class, 'exportCsv'])->name('export.csv');
+        Route::get('/export/excel', [GarageSalesController::class, 'exportExcel'])->name('export.excel');
+        Route::get('/export/pdf', [GarageSalesController::class, 'exportPdf'])->name('export.pdf');
         Route::get('/create', [GarageSalesController::class, 'create'])->name('create');
         Route::post('/store', [GarageSalesController::class, 'store'])->name('store');
         Route::get('/{id}', [GarageSalesController::class, 'show'])->name('show');
+        Route::post('/{id}/archive', [GarageSalesController::class, 'archive'])->name('archive');
         Route::delete('/{id}', [GarageSalesController::class, 'destroy'])->name('destroy');
     });
 

@@ -116,6 +116,17 @@ class GarageSalesController extends Controller
             ], 422);
         }
 
+        $lastPost = GarageSale::where('user_id', auth()->id())
+            ->where('created_at', '>=', now()->subDays(7))
+            ->first();
+
+        if ($lastPost) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'You can only post one garage sale per week. Please wait 7 days before posting again.'
+            ], 422);
+        }
+
         // Auto calculate sale_end_date (7 days after sale_start_date)
         $saleStartDate = Carbon::parse($request->sale_start_date);
         $saleEndDate   = $saleStartDate->copy()->addDays(7);

@@ -48,6 +48,7 @@ class HomeController extends Controller
         ->where('status', 'active')
         ->whereNotNull('pickup_latitude')
         ->whereNotNull('pickup_longitude')
+        ->orderByDesc('is_spotlighted')
         ->orderBy('distance')
         ->get();
 

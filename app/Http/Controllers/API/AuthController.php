@@ -92,6 +92,18 @@ class AuthController extends BaseController
         }
 
         $user = auth('api')->user();
+
+        // Check if user is suspended
+        if ($user->status == 0) {
+            auth('api')->logout();
+            return response()->json([
+                'success' => false,
+                'message' => 'Account Suspended.',
+                'reason' => $user->suspension_reason ?? 'No reason provided.',
+                'suspended_at' => $user->suspended_at
+            ], 403);
+        }
+
         $user->last_login_at = now();
         $user->save();
 
