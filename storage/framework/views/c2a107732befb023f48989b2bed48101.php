@@ -245,6 +245,10 @@
 
                         <div class="metrics-grid">
                             <div class="metric-row">
+                                <span class="metric-label"><i class="ri-user-star-fill me-1"></i> Unique Boosters</span>
+                                <span class="metric-value"><?php echo e($city->unique_users); ?></span>
+                            </div>
+                            <div class="metric-row">
                                 <span class="metric-label"><i class="ri-flashlight-fill me-1"></i> Paid Boosts</span>
                                 <span class="metric-value"><?php echo e($city->boost_count); ?></span>
                             </div>

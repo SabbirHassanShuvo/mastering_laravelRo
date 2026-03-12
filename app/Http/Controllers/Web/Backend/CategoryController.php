@@ -27,7 +27,7 @@ class CategoryController extends Controller
                 })
                 ->addColumn('action', function ($data) {
                     return '
-                    <div class="d-flex gap-1">
+                    <div class="d-flex justify-content-center gap-1">
                         <button onclick="edit(' . $data->id . ')" class="btn btn-soft-info btn-sm" title="Edit">
                             <i class="ri-pencil-line"></i>
                         </button>

@@ -14,6 +14,8 @@ Route::prefix('backend')->name('backend.')->group(function () {
         Route::post('/store', [ProductsController::class, 'store'])->name('store');
         Route::get('/export/csv', [ProductsController::class, 'exportCsv'])->name('export.csv');
         Route::get('/export/pdf', [ProductsController::class, 'exportPdf'])->name('export.pdf');
+        Route::get('/export/excel', [ProductsController::class, 'exportExcel'])->name('export.excel');
+        Route::get('/export/json', [ProductsController::class, 'exportJson'])->name('export.json');
         Route::get('/{product}', [ProductsController::class, 'show'])->name('show');
         Route::post('/{id}/status', [ProductsController::class, 'changeStatus'])->name('status');
         Route::delete('/{product}', [ProductsController::class, 'destroy'])->name('destroy');
@@ -40,6 +42,8 @@ Route::prefix('backend')->name('backend.')->group(function () {
         Route::get('/cities', [SpotlightPaymentsController::class, 'cityAnalytics'])->name('cities');
         Route::get('/export/csv', [SpotlightPaymentsController::class, 'exportCsv'])->name('export.csv');
         Route::get('/export/pdf', [SpotlightPaymentsController::class, 'exportPdf'])->name('export.pdf');
+        Route::get('/export/excel', [SpotlightPaymentsController::class, 'exportExcel'])->name('export.excel');
+        Route::get('/export/json', [SpotlightPaymentsController::class, 'exportJson'])->name('export.json');
         Route::get('/{id}', [SpotlightPaymentsController::class, 'show'])->name('show');
     });
 

@@ -359,5 +359,47 @@ class ProductsController extends Controller
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('backend.layout.products.export_pdf', $data);
         return $pdf->download('products_report_' . date('Y-m-d') . '.pdf');
     }
+    /**
+     * Export products to Excel.
+     */
+    public function exportExcel()
+    {
+        $products = Product::with(['user', 'category'])->latest()->get();
+        $filename = "products_export_" . date('Y-m-d_H-i-s') . ".xls";
+        
+        $html = '<table border="1">';
+        $html .= '<tr><th>ID</th><th>Title</th><th>Owner</th><th>Category</th><th>Type</th><th>Price</th><th>Status</th><th>Spotlight</th><th>Urgent</th><th>Posted At</th></tr>';
+        foreach ($products as $p) {
+            $html .= '<tr>';
+            $html .= '<td>' . $p->id . '</td>';
+            $html .= '<td>' . htmlspecialchars($p->title) . '</td>';
+            $html .= '<td>' . htmlspecialchars($p->user->name ?? 'N/A') . '</td>';
+            $html .= '<td>' . htmlspecialchars($p->category->title ?? 'N/A') . '</td>';
+            $html .= '<td>' . $p->product_type . '</td>';
+            $html .= '<td>' . ($p->price ?? 0) . '</td>';
+            $html .= '<td>' . ucfirst($p->status) . '</td>';
+            $html .= '<td>' . ($p->is_spotlighted ? 'Yes' : 'No') . '</td>';
+            $html .= '<td>' . ($p->is_urgent ? 'Yes' : 'No') . '</td>';
+            $html .= '<td>' . ($p->posted_at ? $p->posted_at->format('Y-m-d') : 'N/A') . '</td>';
+            $html .= '</tr>';
+        }
+        $html .= '</table>';
+
+        return response($html)
+            ->header('Content-Type', 'application/vnd.ms-excel')
+            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+    }
+
+    /**
+     * Export products to JSON.
+     */
+    public function exportJson()
+    {
+        $products = Product::with(['user', 'category'])->latest()->get();
+        $filename = "products_export_" . date('Y-m-d_H-i-s') . ".json";
+        
+        return response()->json($products)
+            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+    }
 }
 

@@ -574,52 +574,13 @@ class ProductsController extends Controller
 
         $product = Product::with(['user.profile'])->findOrFail($productId);
 
-        $love = ProductLove::where('product_id', $product->id)
-                            ->where('user_id', $user->id)
-                            ->first();
-
-        // Unlike
-        if ($love) {
-
-            $love->delete();
-
-            $match = Matche::where('product_id', $product->id)
-                ->where('user_one_id', $product->user_id)
-                ->where('user_two_id', $user->id)
-                ->first();
-
-            if ($match) {
-                $match->delete();
-            }
-
-            return response()->json([
-                'status' => true,
-                'type' => 'like',
-                'data' => [
-                    'product' => [
-                        'image' => $product->image,
-                        'price' => $product->price,
-                    ],
-                    'owner' => [
-                        'name' => $product->user->name,
-                        'avatar' => optional($product->user->profile)->avatar,
-                        'image' => optional($product->user->profile)->image,
-                    ],
-                    'liked_by' => [
-                        'name' => $user->name,
-                        'avatar' => optional($user->profile)->avatar,
-                        'image' => optional($user->profile)->image,
-                    ]
-                ]
-            ]);
-        }
-
         // Like
-        ProductLove::create([
+        ProductLove::firstOrCreate([
             'product_id' => $product->id,
             'user_id' => $user->id
         ]);
 
+        // Match 
         $match = Matche::firstOrCreate([
             'product_id' => $product->id,
             'user_one_id' => $product->user_id,
@@ -631,15 +592,18 @@ class ProductsController extends Controller
             'type' => 'like',
             'data' => [
                 'product' => [
+                    'id' => $product->id,
                     'image' => $product->image,
                     'price' => $product->price,
                 ],
                 'owner' => [
+                    'id' => $product->user->id,
                     'name' => $product->user->name,
                     'avatar' => optional($product->user->profile)->avatar,
                     'image' => optional($product->user->profile)->image,
                 ],
                 'liked_by' => [
+                    'id' => $user->id,
                     'name' => $user->name,
                     'avatar' => optional($user->profile)->avatar,
                     'image' => optional($user->profile)->image,

@@ -131,6 +131,7 @@ class SpotlightPaymentsController extends Controller
                 COUNT(spotlight_payments.id) as boost_count,
                 COUNT(DISTINCT products.id) as total_products,
                 COUNT(DISTINCT CASE WHEN spotlight_payments.status = 'paid' THEN products.id END) as boosted_products_count,
+                COUNT(DISTINCT CASE WHEN spotlight_payments.status = 'paid' THEN spotlight_payments.user_id END) as unique_users,
                 MAX(spotlight_payments.created_at) as last_boost_at
             ")
             ->leftJoin('spotlight_payments', function($join) {
@@ -145,6 +146,7 @@ class SpotlightPaymentsController extends Controller
                 $boost_count = (int)$item->boost_count;
                 $total_products = (int)$item->total_products;
                 $boosted_products_count = (int)$item->boosted_products_count;
+                $unique_users = (int)$item->unique_users;
 
                 return (object)[
                     'city' => (string)$item->city,
@@ -152,6 +154,7 @@ class SpotlightPaymentsController extends Controller
                     'boost_count' => $boost_count,
                     'total_products' => $total_products,
                     'boosted_products_count' => $boosted_products_count,
+                    'unique_users' => $unique_users,
                     'contribution' => $totalRevenueOverall > 0 ? (float)(($revenue / $totalRevenueOverall) * 100) : 0,
                     'capture_rate' => $total_products > 0 ? (float)(($boosted_products_count / $total_products) * 100) : 0,
                     'avg_boost_value' => $boost_count > 0 ? (float)($revenue / $boost_count) : 0,
@@ -232,5 +235,51 @@ class SpotlightPaymentsController extends Controller
         $payments = SpotlightPayment::with(['user', 'product'])->orderByDesc('created_at')->limit(500)->get();
         $pdf = Pdf::loadView('backend.layout.spotlight.export_pdf', compact('payments'));
         return $pdf->download('spotlight_payments_report_' . date('Y-m-d') . '.pdf');
+    }
+
+    /**
+     * Export payment logs to Excel.
+     */
+    public function exportExcel()
+    {
+        $payments = SpotlightPayment::with(['user', 'product'])->orderByDesc('created_at')->get();
+        $filename = "spotlight_payments_" . date('Y-m-d') . ".xls";
+
+        $html = '<table border="1">';
+        $html .= '<tr><th>Date</th><th>Transaction ID</th><th>User Name</th><th>User Email</th><th>Product Title</th><th>Product ID</th><th>Plan</th><th>Currency</th><th>Amount</th><th>Status</th><th>Start Date</th><th>End Date</th></tr>';
+        
+        foreach ($payments as $payment) {
+            $html .= '<tr>';
+            $html .= '<td>' . $payment->created_at->format('Y-m-d H:i:s') . '</td>';
+            $html .= '<td>' . htmlspecialchars($payment->stripe_payment_intent_id) . '</td>';
+            $html .= '<td>' . htmlspecialchars($payment->user->name ?? 'N/A') . '</td>';
+            $html .= '<td>' . htmlspecialchars($payment->user->email ?? 'N/A') . '</td>';
+            $html .= '<td>' . htmlspecialchars($payment->product->title ?? 'N/A') . '</td>';
+            $html .= '<td>' . $payment->product_id . '</td>';
+            $html .= '<td>' . htmlspecialchars($payment->boost_plan) . '</td>';
+            $html .= '<td>' . strtoupper($payment->currency) . '</td>';
+            $html .= '<td>' . $payment->amount . '</td>';
+            $html .= '<td>' . ucfirst($payment->status) . '</td>';
+            $html .= '<td>' . ($payment->spotlight_start_at ? $payment->spotlight_start_at->format('Y-m-d') : 'N/A') . '</td>';
+            $html .= '<td>' . ($payment->spotlight_end_at ? $payment->spotlight_end_at->format('Y-m-d') : 'N/A') . '</td>';
+            $html .= '</tr>';
+        }
+        $html .= '</table>';
+
+        return response($html)
+            ->header('Content-Type', 'application/vnd.ms-excel')
+            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+    }
+
+    /**
+     * Export payment logs to JSON.
+     */
+    public function exportJson()
+    {
+        $payments = SpotlightPayment::with(['user', 'product'])->orderByDesc('created_at')->get();
+        $filename = "spotlight_payments_" . date('Y-m-d') . ".json";
+
+        return response()->json($payments)
+            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
     }
 }

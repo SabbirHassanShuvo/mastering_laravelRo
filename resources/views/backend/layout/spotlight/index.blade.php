@@ -28,12 +28,6 @@
         </div>
         <div class="ms-auto pageheader-btn">
             <div class="d-flex align-items-center gap-2">
-                <a href="{{ route('backend.spotlight.export.csv') }}" class="btn btn-soft-success d-inline-flex align-items-center shadow-sm">
-                    <i class="ri-file-excel-line me-1"></i> Export Excel/CSV
-                </a>
-                <a href="{{ route('backend.spotlight.export.pdf') }}" class="btn btn-soft-danger d-inline-flex align-items-center shadow-sm">
-                    <i class="ri-file-pdf-line me-1"></i> Download PDF
-                </a>
                 <div class="vr mx-2"></div>
                 <ol class="breadcrumb d-inline-flex mb-0">
                     <li class="breadcrumb-item"><a href="javascript:void(0);">Dashboard</a></li>
@@ -246,6 +240,22 @@
     <div class="row">
         <div class="col-12">
             <div class="card">
+                <div class="card-header border-bottom-dashed d-flex align-items-center">
+                    <h4 class="card-title mb-0 flex-grow-1">Payment History</h4>
+                    <div class="ms-auto d-flex gap-1">
+                        <div class="dropdown">
+                            <button class="btn btn-success btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="ri-download-2-line me-1"></i> Export
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{{ route('backend.spotlight.export.csv') }}"><i class="ri-file-text-line me-2 text-muted"></i> Export CSV</a></li>
+                                <li><a class="dropdown-item" href="{{ route('backend.spotlight.export.excel') }}"><i class="ri-file-excel-2-line me-2 text-success"></i> Export Excel</a></li>
+                                <li><a class="dropdown-item" href="{{ route('backend.spotlight.export.pdf') }}"><i class="ri-file-pdf-line me-2 text-danger"></i> Export PDF</a></li>
+                                <li><a class="dropdown-item" href="{{ route('backend.spotlight.export.json') }}"><i class="ri-braces-line me-2 text-info"></i> Export JSON</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table id="datatable" class="table table-bordered text-nowrap border-bottom w-100">

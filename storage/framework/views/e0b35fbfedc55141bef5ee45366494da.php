@@ -243,12 +243,17 @@
                             <a href="<?php echo e(route('backend.products.create')); ?>" class="btn btn-primary btn-sm">
                                 <i class="ri-add-line me-1"></i> Add Product
                             </a>
-                            <a href="<?php echo e(route('backend.products.export.csv')); ?>" class="btn btn-success btn-sm">
-                                <i class="ri-file-excel-2-line me-1"></i> Excel
-                            </a>
-                            <a href="<?php echo e(route('backend.products.export.pdf')); ?>" class="btn btn-danger btn-sm">
-                                <i class="ri-file-pdf-line me-1"></i> PDF
-                            </a>
+                            <div class="dropdown">
+                                <button class="btn btn-success btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="ri-download-2-line me-1"></i> Export
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="<?php echo e(route('backend.products.export.csv')); ?>"><i class="ri-file-text-line me-2 text-muted"></i> Export CSV</a></li>
+                                    <li><a class="dropdown-item" href="<?php echo e(route('backend.products.export.excel')); ?>"><i class="ri-file-excel-2-line me-2 text-success"></i> Export Excel</a></li>
+                                    <li><a class="dropdown-item" href="<?php echo e(route('backend.products.export.pdf')); ?>"><i class="ri-file-pdf-line me-2 text-danger"></i> Export PDF</a></li>
+                                    <li><a class="dropdown-item" href="<?php echo e(route('backend.products.export.json')); ?>"><i class="ri-braces-line me-2 text-info"></i> Export JSON</a></li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>

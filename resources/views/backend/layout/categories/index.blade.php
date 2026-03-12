@@ -52,7 +52,7 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table id="datatable" class="table table-hover table-premium align-middle nowrap w-100">
+                        <table id="datatable" class="table table-bordered text-nowrap border-bottom w-100">
                             <thead>
                                 <tr>
                                     <th style="width: 50px;">#</th>
