@@ -18,12 +18,22 @@ class MessageController extends Controller
     // ─────────────────────────────────────────────────────────────────
     public function send(Request $request, int $conversationId): JsonResponse
     {
+        // Allow strings for potential base64 uploads and files for multipart
         $request->validate([
             'message_text' => 'nullable|string|max:5000',
-            'file'         => 'nullable|file|max:10240|mimes:jpeg,jpg,png,mp4,mov',
+            'file'         => 'nullable',
+            'image'        => 'nullable',
+            'video'        => 'nullable',
         ]);
 
-        if (empty($request->message_text) && !$request->hasFile('file')) {
+        $file = $request->file('file') ?? $request->file('image') ?? $request->file('video');
+
+        // If no file found in specific keys, pick the first file from the request
+        if (!$file && count($request->allFiles()) > 0) {
+            $file = array_values($request->allFiles())[0];
+        }
+
+        if (empty($request->message_text) && !$file && !$request->filled('image') && !$request->filled('file')) {
             return response()->json(['status' => false, 'message' => 'Provide text or file.'], 422);
         }
 
@@ -40,13 +50,25 @@ class MessageController extends Controller
             ], 422);
         }
 
-        // File upload
+        // File upload handling
         $filePath = null;
         $fileType = null;
-        if ($request->hasFile('file')) {
-            $file     = $request->file('file');
-            $fileType = str_starts_with($file->getMimeType(), 'video') ? 'video' : 'image';
-            $filePath = $file->store('chat_files', 'public');
+
+        if ($file) {
+            $fileType = str_contains($file->getMimeType(), 'video') ? 'video' : 'image';
+            $fileName = time() . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
+            $filePath = $file->storeAs('chat_files', $fileName, 'public');
+        } elseif ($request->filled('image') && is_string($request->image) && str_starts_with($request->image, 'data:image')) {
+            // Handle Base64 Image
+            $fileData = $request->image;
+            $extension = explode('/', explode(':', substr($fileData, 0, strpos($fileData, ';')))[1])[1];
+            $replace = substr($fileData, 0, strpos($fileData, ',') + 1);
+            $imageBytes = str_replace($replace, '', $fileData);
+            $imageBytes = str_replace(' ', '+', $imageBytes);
+            $fileName = time() . '_image.' . $extension;
+            $filePath = 'chat_files/' . $fileName;
+            \Storage::disk('public')->put($filePath, base64_decode($imageBytes));
+            $fileType = 'image';
         }
 
         $message = Message::create([
@@ -63,7 +85,7 @@ class MessageController extends Controller
         // Update conversation updated_at so it bubbles to top in list
         $conversation->touch();
 
-        // 🔴 BROADCAST → private-conversation.{id}
+        // BROADCAST → private-conversation.{id}
         // Flutter receives this and appends message to chat in real-time
         broadcast(new MessageSent($message))->toOthers();
 

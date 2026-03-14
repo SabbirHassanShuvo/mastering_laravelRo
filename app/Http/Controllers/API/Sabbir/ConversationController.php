@@ -107,7 +107,7 @@ class ConversationController extends Controller
 
         $conversation->update(['status' => $data['status']]);
 
-        // 🔴 BROADCAST → private-user.{user_one_id} (the requester)
+        // BROADCAST → private-user.{user_one_id} (the requester)
         broadcast(new ConversationStatusChanged($conversation->fresh()))->toOthers();
 
         $msg = $data['status'] === 'accepted'

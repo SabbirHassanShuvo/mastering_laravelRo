@@ -38,6 +38,10 @@ class Message extends Model
 
     public function getFileUrlAttribute(): ?string
     {
-        return $this->file_path ? asset('storage/' . $this->file_path) : null;
+        if (!$this->file_path) {
+            return null;
+        }
+
+        return asset('storage/' . $this->file_path);    
     }
 }

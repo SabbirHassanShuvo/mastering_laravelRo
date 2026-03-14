@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\Sabbir;
 
 use App\Http\Controllers\Controller;
+use App\Models\GarageItem;
 use App\Models\GarageSale;
 use App\Models\Product;
 use Illuminate\Http\Request;
@@ -216,6 +217,45 @@ class HomeController extends Controller
         return response()->json([
             'success' => true,
             'data' => $garage
+        ]);
+    }
+
+    // Garage Item Details 
+    public function itemDetail($id)
+    {
+        $item = GarageItem::with([
+            'images:id,garage_item_id,photo',
+            'garageSale:id,user_id,event_title,latitude,longitude',
+            'garageSale.user:id,name',
+            'garageSale.user.profile:id,user_id,user_name,avatar'
+        ])->find($id);
+
+        if (!$item) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Item not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id' => $item->id,
+                'title' => $item->title,
+                'price' => $item->price,
+                'description' => $item->description,
+                'condition' => $item->condition ?? null,
+                'images' => $item->images,
+                'garage' => [
+                    'id' => $item->garageSale->id,
+                    'title' => $item->garageSale->event_title
+                ],
+                'seller' => [
+                    'id' => $item->garageSale->user->id,
+                    'name' => $item->garageSale->user->name,
+                    'profile' => $item->garageSale->user->profile
+                ]
+            ]
         ]);
     }
 }

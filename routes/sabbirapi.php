@@ -96,6 +96,7 @@ Route::group(['middleware' => 'auth:api','prefix' => 'home'], function ($router)
     Route::post('/productsDetails/{id}', [HomeController::class, 'productDetail']);
     Route::post('/allgarages', [HomeController::class, 'homeGarageSales']);
     Route::post('/garageDetails/{id}', [HomeController::class, 'garageDetail']);
+    Route::get('/itemDetails/{id}', [HomeController::class, 'itemDetail']);
 
 });
 Route::group(['middleware' => 'auth:api','prefix' => 'help'], function ($router) {
@@ -127,10 +128,10 @@ Route::group(['middleware' => 'auth:api','prefix' => 'chat'], function ($router)
     Route::post('pickups/{id}/confirm',                [PickupController::class, 'confirm']);
 
     // ── Reviews ────────────────────────────────────────────────────
-    Route::post('reviews',                [ReviewController::class, 'store']);
-    Route::get('users/{id}/reviews',      [ReviewController::class, 'userReviews']);
+    Route::post('reviews',[ReviewController::class, 'store']);
+    // Route::get('users/{id}/reviews',[ReviewController::class, 'userReviews']);
 
-    // ── Reports ────────────────────────────────────────────────────
+    // ── Reports ───────────────────────────────────────────────────
     Route::post('reports', [ReportController::class, 'store']);
 });
 
