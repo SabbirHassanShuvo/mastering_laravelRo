@@ -128,6 +128,7 @@ class SpotlightService
             'product_id' => $productId,
             'stripe_payment_intent_id' => $intent['payment_intent_id'],
             'amount' => $fee,
+            'currency' => 'usd',
             'status' => 'pending',
             'boost_plan' => 'Weekend Boost',
             'boost_hours' => 48,

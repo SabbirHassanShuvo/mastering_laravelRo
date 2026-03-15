@@ -190,8 +190,64 @@ class WebhookController extends Controller
     {
         $metadata = $pi->metadata;
 
-        if (GarageSale::where('stripe_payment_intent_id', $pi->id)->exists()) return;
+        // Check for duplicate payment intent first
+        if (GarageSale::where('stripe_payment_intent_id', $pi->id)->exists()) {
+            Log::info('Garage duplicate, skipping: ' . $pi->id);
+            return;
+        }
 
+        // Check if we are using local storage JSON payload
+        if (isset($metadata->payload_id)) {
+            $payloadFile = "stripe_payloads/{$metadata->payload_id}.json";
+            
+            if (!Storage::disk('local')->exists($payloadFile)) {
+                Log::error("Garage payload file not found: {$payloadFile}. PI: {$pi->id}");
+                return;
+            }
+
+            $payloadContent = Storage::disk('local')->get($payloadFile);
+            $fullData = json_decode($payloadContent, true);
+
+            $garage = GarageSale::create([
+                'user_id'                  => $fullData['user_id'],
+                'event_title'              => $fullData['event_title'] ?? 'Garage Sale',
+                'description'              => $fullData['description'] ?? '',
+                'date'                     => $fullData['date'],
+                'pickup_location'          => $fullData['pickup_location'],
+                'sale_start_date'          => $fullData['sale_start_date'],
+                'sale_end_date'            => $fullData['sale_end_date'],
+                'latitude'                 => $fullData['latitude'] ?: null,
+                'longitude'                => $fullData['longitude'] ?: null,
+                'expires_at'               => $fullData['expires_at'],
+                'total_fee'                => 2.99,
+                'status'                   => 'active',
+                'payment_status'           => 'completed',
+                'payment_completed_at'     => now(),
+                'stripe_payment_intent_id' => $pi->id,
+            ]);
+
+            $itemsList = is_string($fullData['items']) ? json_decode($fullData['items'], true) : $fullData['items'];
+
+            foreach ($itemsList as $itemData) {
+                $item = GarageItem::create([
+                    'garage_sale_id' => $garage->id,
+                    'title'          => $itemData['title'],
+                    'price'          => $itemData['price'] ?? null,
+                    'description'    => $itemData['description'] ?? null,
+                ]);
+                foreach ($itemData['images'] ?? [] as $img) {
+                    GarageItemImage::create(['garage_item_id' => $item->id, 'photo' => $img]);
+                }
+            }
+
+            // Cleanup the file
+            Storage::disk('local')->delete($payloadFile);
+
+            Log::info("GarageSale #{$garage->id} saved via payload JSON. PI: {$pi->id}");
+            return;
+        }
+
+        // Backward compatibility (old direct metadata payloads)
         $garage = GarageSale::create([
             'user_id'                  => $metadata->user_id,
             'event_title'              => $metadata->event_title ?? 'Garage Sale',
@@ -210,19 +266,21 @@ class WebhookController extends Controller
             'stripe_payment_intent_id' => $pi->id,
         ]);
 
-        foreach (json_decode($metadata->items, true) as $itemData) {
-            $item = GarageItem::create([
-                'garage_sale_id' => $garage->id,
-                'title'          => $itemData['title'],
-                'price'          => $itemData['price'] ?? null,
-                'description'    => $itemData['description'] ?? null,
-            ]);
-            foreach ($itemData['images'] ?? [] as $img) {
-                GarageItemImage::create(['garage_item_id' => $item->id, 'photo' => $img]);
+        if (isset($metadata->items)) {
+            foreach (json_decode($metadata->items, true) as $itemData) {
+                $item = GarageItem::create([
+                    'garage_sale_id' => $garage->id,
+                    'title'          => $itemData['title'],
+                    'price'          => $itemData['price'] ?? null,
+                    'description'    => $itemData['description'] ?? null,
+                ]);
+                foreach ($itemData['images'] ?? [] as $img) {
+                    GarageItemImage::create(['garage_item_id' => $item->id, 'photo' => $img]);
+                }
             }
         }
 
-        Log::info("GarageSale #{$garage->id} saved. PI: {$pi->id}");
+        Log::info("GarageSale #{$garage->id} saved (legacy). PI: {$pi->id}");
     }
 
     private function productWebhookHandler($pi): void

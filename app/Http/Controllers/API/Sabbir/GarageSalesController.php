@@ -166,8 +166,10 @@ class GarageSalesController extends Controller
             ];
         }
 
-        // Stripe metadata
-        $metadata = [
+        // Generate a temporary payload ID
+        $payloadId = uniqid('garage_payload_');
+
+        $fullData = [
             'user_id'         => auth()->id(),
             'event_title'     => $request->event_title,
             'description'     => $request->description ?? '',
@@ -175,15 +177,26 @@ class GarageSalesController extends Controller
             'pickup_location' => $request->pickup_location,
             'sale_start_date' => $saleStartDate->toDateTimeString(),
             'sale_end_date'   => $saleEndDate->toDateTimeString(),
-            'latitude'        => $request->latitude ?? '',
-            'longitude'       => $request->longitude ?? '',
+            'latitude'        => $request->latitude ?? null,
+            'longitude'       => $request->longitude ?? null,
             'expires_at'      => now()->addDays(7)->toDateTimeString(),
             'items'           => json_encode($processedItems),
+        ];
+
+        // Store payload in local storage
+        Storage::disk('local')->put("stripe_payloads/{$payloadId}.json", json_encode($fullData));
+
+        // Stripe metadata
+        $metadata = [
+            'type'            => 'garage_payload',
+            'payload_id'      => $payloadId,
+            'user_id'         => auth()->id(),
         ];
 
         $payment = $this->stripeService->createPaymentIntent($metadata);
 
         if ($payment['status'] == 'error') {
+            Storage::disk('local')->delete("stripe_payloads/{$payloadId}.json");
             return response()->json($payment, 400);
         }
 

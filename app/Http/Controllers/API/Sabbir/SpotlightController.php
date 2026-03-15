@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\Sabbir;
+namespace App\Http\Controllers\API\Sabbir;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;

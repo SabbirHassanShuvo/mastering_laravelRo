@@ -12,7 +12,7 @@ use App\Http\Controllers\API\Sabbir\ProductsController;
 use App\Http\Controllers\API\Sabbir\ProfileController;
 use App\Http\Controllers\API\Sabbir\ReportController;
 use App\Http\Controllers\API\Sabbir\ReviewController;
-use App\Http\Controllers\Api\Sabbir\SpotlightController;
+use App\Http\Controllers\API\Sabbir\SpotlightController;
 use App\Http\Controllers\API\Sabbir\WebhookController;
 use Illuminate\Support\Facades\Route;
 
