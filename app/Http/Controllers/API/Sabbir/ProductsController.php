@@ -421,7 +421,7 @@ class ProductsController extends Controller
         return response()->json([
             'status' => true,
             'data' => [
-                'photos' => $product->photos->pluck('image'), // শুধু image URLs
+                'photos' => $product->photos->pluck('photo_url'), // Fixed field name to use accessor
                 'title' => $product->title,
                 'price' => $product->price,
                 'status' => $product->status,

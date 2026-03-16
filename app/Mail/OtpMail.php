@@ -1,5 +1,59 @@
 <?php
 
+// namespace App\Mail;
+
+// use Illuminate\Mail\Mailable;
+// use Illuminate\Mail\Mailables\Content;
+// use Illuminate\Mail\Mailables\Envelope;
+// use Illuminate\Queue\SerializesModels;
+
+// class OtpMail extends Mailable
+// {
+//     use SerializesModels;
+
+//     /**
+//      * Create a new message instance.
+//      */
+//     protected $otp;
+//     protected $ttl;5rtd45
+//     public function __construct($otp, $ttl)
+//     {
+//         $this->otp = $otp; 
+//         $this->ttl = $ttl;
+//     }
+
+//     /**
+//      * Get the message envelope.
+//      */
+//     public function envelope(): Envelope
+//     {
+//         return new Envelope(
+//             subject: 'Otp Mail',
+//         );
+//     }
+
+//     /**
+//      * Get the message content definition.
+//      */
+//     public function content(): Content
+//     {
+//         return new Content(
+//             view: 'mail.otp',
+//             with: ['otp'=> $this->otp, 'ttl'=> $this->ttl],
+//         );
+//     }
+
+//     /**
+//      * Get the attachments for the message.
+//      *
+//      * @return array<int, \Illuminate\Mail\Mailables\Attachment>
+//      */
+//     public function attachments(): array
+//     {
+//         return [];
+//     }
+
+
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
@@ -54,4 +108,5 @@ class OtpMail extends Mailable implements ShouldQueue
     {
         return [];
     }
+
 }

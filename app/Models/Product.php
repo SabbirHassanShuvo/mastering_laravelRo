@@ -9,6 +9,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Product extends Model
 {
@@ -86,5 +87,13 @@ class Product extends Model
     public function spotlightPayments()
     {
         return $this->hasMany(SpotlightPayment::class);
+    }
+
+    public function getProductImageAttribute($value)
+    {
+        if ($value && !filter_var($value, FILTER_VALIDATE_URL)) {
+            return Storage::disk('public')->url($value);
+        }
+        return $value;
     }
 }

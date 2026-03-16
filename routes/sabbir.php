@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Web\Backend\AdminMessagingController;
 use App\Http\Controllers\Web\Backend\GarageSalesController;
 use App\Http\Controllers\Web\Backend\ProductsController;
 use App\Http\Controllers\Web\Backend\SpotlightPaymentsController;
@@ -34,6 +35,13 @@ Route::prefix('backend')->name('backend.')->group(function () {
         Route::get('/{id}', [GarageSalesController::class, 'show'])->name('show');
         Route::post('/{id}/archive', [GarageSalesController::class, 'archive'])->name('archive');
         Route::delete('/{id}', [GarageSalesController::class, 'destroy'])->name('destroy');
+    });
+
+    // Messaging & Analytics
+    Route::prefix('messaging')->name('messaging.')->group(function () {
+        Route::get('/conversations', [AdminMessagingController::class, 'conversations'])->name('conversations');
+        Route::get('/pickups', [AdminMessagingController::class, 'pickups'])->name('pickups');
+        Route::get('/analytics', [AdminMessagingController::class, 'analytics'])->name('analytics');
     });
 
     // Spotlight & Boost Payments

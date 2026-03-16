@@ -123,6 +123,32 @@
                         </ul>
                     </div>
                 </li>
+
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ request()->routeIs('backend.messaging.*') ? 'active' : '' }}"
+                        href="#sidebarMessaging" data-bs-toggle="collapse" role="button" aria-expanded="false"
+                        aria-controls="sidebarMessaging">
+                        <i class="ri-chat-3-line"></i>
+                        <span>Messaging</span>
+                    </a>
+                    <div class="collapse menu-dropdown {{ request()->routeIs('backend.messaging.*') ? 'show' : '' }}"
+                        id="sidebarMessaging">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item">
+                                <a href="{{ route('backend.messaging.conversations') }}"
+                                    class="nav-link {{ request()->routeIs('backend.messaging.conversations') }}">Conversations</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('backend.messaging.pickups') }}"
+                                    class="nav-link {{ request()->routeIs('backend.messaging.pickups') }}">Pickup Requests</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('backend.messaging.analytics') }}"
+                                    class="nav-link {{ request()->routeIs('backend.messaging.analytics') }}">Analytics</a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
                 {{-- <li class="nav-item">
                     <a class="nav-link menu-link  {{ getPageStatus('backend.dashboard.*', 'collapsed active') }}"
                         href="#sidebarDashboards" role="button">

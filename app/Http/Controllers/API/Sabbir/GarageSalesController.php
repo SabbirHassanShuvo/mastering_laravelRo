@@ -162,7 +162,7 @@ class GarageSalesController extends Controller
                 'title'       => $itemData['title'],
                 'price'       => $itemData['price'] ?? null,
                 'description' => $itemData['description'] ?? null,
-                'images'      => $images,
+                'images'      => array_values(array_unique($images)),
             ];
         }
 
@@ -202,7 +202,7 @@ class GarageSalesController extends Controller
 
         return response()->json([
             'status'  => true,
-            'message' => 'Payment intent created',
+            'message' => 'Payment intent created (payload stored)',
             'data'    => $payment
         ]);
     }
