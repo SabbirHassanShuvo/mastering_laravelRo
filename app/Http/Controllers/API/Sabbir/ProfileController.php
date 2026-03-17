@@ -30,16 +30,15 @@ class ProfileController extends Controller
             'success' => true,
             'message' => 'User profile retrieved successfully.',
             'data' => [
-                'user' => $user->only([
-                    'id',
-                    'name',
-                    'email',
-                    'avatar',
-                    'address',
-                    'phone',
-                    'role',
-                    'is_premium'
-                ]),
+                'user' => [
+                    'id'         => $user->id,
+                    'name'       => $user->name,
+                    'email'      => $user->email,
+                    'avatar'     => $user->profile->avatar ?? null,
+                    'address'    => $user->profile->address ?? null,
+                    'phone'      => $user->profile->phone ?? null,
+                    'role'       => $user->role,
+                ],
                 'posts' => $user->products
             ]
         ], 200);
@@ -186,7 +185,11 @@ class ProfileController extends Controller
         $user->password = Hash::make($request->password);
         $user->save();
 
-        return jsonResponse(true, 'Password changed successfully', 200, $user->only(['name', 'email', 'avatar']));
+        return jsonResponse(true, 'Password changed successfully', 200, [
+            'name'   => $user->name,
+            'email'  => $user->email,
+            'avatar' => $user->profile->avatar ?? null,
+        ]);
     }
 
 public function getUserNotifications()
@@ -202,27 +205,22 @@ public function getUserNotifications()
         $data = $notification->data;
 
         $summary = [
-            'id' => $notification->id,
-            'type' => $notification->type,
-            'title' => $data['title'] ?? null,
-            'message' => $data['message'] ?? null,
-            'time' => $notification->created_at->format('Y-m-d H:i:s'),
-            'image' => null,
+            'id'              => $notification->id,
+            'type'            => $data['type'] ?? $notification->type, // Use internal type if available
+            'title'           => $data['title'] ?? null,
+            'message'         => $data['message'] ?? null,
+            'conversation_id' => $data['conversation_id'] ?? null,
+            'product_id'      => $data['product_id'] ?? null,
+            'time'            => $notification->created_at->format('Y-m-d H:i:s'),
+            'image'           => null,
         ];
 
-        // Product image
+        // Fetch Product Image for all notification types that have product_id
         if (isset($data['product_id'])) {
-            $product = Product::with('images')->find($data['product_id']);
-            if ($product && $product->images->first()?->photo) {
-                $summary['image'] = asset('storage/' . $product->images->first()->photo);
-            }
-        }
-
-        // Garage image
-        if (isset($data['garage_id'])) {
-            $garage = GarageSale::with('items.images')->find($data['garage_id']);
-            if ($garage && $garage->items->first()?->images->first()?->photo) {
-                $summary['image'] = asset('storage/' . $garage->items->first()->images->first()->photo);
+            $product = Product::find($data['product_id']);
+            if ($product && $product->product_image) {
+                // The Product model accessor getProductImageAttribute already handles Storage URL
+                $summary['image'] = $product->product_image;
             }
         }
 

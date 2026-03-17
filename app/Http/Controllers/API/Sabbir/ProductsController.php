@@ -9,6 +9,7 @@ use App\Models\Matche;
 use App\Models\Product;
 use App\Models\ProductLove;
 use App\Models\SavedProduct;
+use App\Notifications\InterestRequestNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -574,6 +575,14 @@ class ProductsController extends Controller
 
         $product = Product::with(['user.profile'])->findOrFail($productId);
 
+        if ((int)$product->user_id === (int)$user->id) {
+            return response()->json([
+                'status' => false,
+                'type' => 'self_match',
+                'message' => 'You cannot match your own product'
+            ]);
+        }
+
         // Like
         ProductLove::firstOrCreate([
             'product_id' => $product->id,
@@ -586,6 +595,9 @@ class ProductsController extends Controller
             'user_one_id' => $product->user_id,
             'user_two_id' => $user->id
         ]);
+
+        // Notification
+        $product->user->notify(new InterestRequestNotification($product, $user));
 
         return response()->json([
             'status' => true,

@@ -55,10 +55,28 @@ class ReviewController extends Controller
     // GET /api/users/{id}/reviews
     public function userReviews(int $userId): JsonResponse
     {
-        $reviews = Review::with('reviewer:id,name,avatar', 'product:id,name')
+        $reviews = Review::with([
+            'reviewer:id,name',
+            'reviewer.profile:id,user_id,avatar',
+            'product:id,title'
+        ])
             ->where('reviewee_id', $userId)
             ->latest()
-            ->get();
+            ->get()
+            ->map(function ($review) {
+                return [
+                    'id'          => $review->id,
+                    'rating'      => $review->rating,
+                    'comment'     => $review->comment,
+                    'created_at'  => $review->created_at,
+                    'reviewer'    => [
+                        'id'     => $review->reviewer->id,
+                        'name'   => $review->reviewer->name,
+                        'avatar' => $review->reviewer->profile->avatar ?? null,
+                    ],
+                    'product'     => $review->product,
+                ];
+            });
 
         $avg = $reviews->avg('rating');
 

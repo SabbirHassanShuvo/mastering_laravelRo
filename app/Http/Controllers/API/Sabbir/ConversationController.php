@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Conversation;
 use App\Models\Matche;
 use App\Models\Message;
+use App\Notifications\ConversationAcceptedNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -107,6 +108,12 @@ class ConversationController extends Controller
 
         $conversation->update(['status' => $data['status']]);
 
+        // Trigger Notification if accepted
+        if ($data['status'] === 'accepted') {
+            $buyer = $conversation->userOne;
+            $buyer->notify(new ConversationAcceptedNotification($conversation));
+        }
+
         // BROADCAST → private-user.{user_one_id} (the requester)
         broadcast(new ConversationStatusChanged($conversation->fresh()))->toOthers();
 
@@ -127,8 +134,10 @@ class ConversationController extends Controller
 
         $query = Conversation::with([
             'product:id,title,product_image,user_id',
-            'userOne:id,name,avatar',
-            'userTwo:id,name,avatar',
+            'userOne:id,name',
+            'userOne.profile:id,user_id,avatar',
+            'userTwo:id,name',
+            'userTwo.profile:id,user_id,avatar',
             'messages' => fn($q) => $q->latest()->limit(1),
         ])
             ->where(function ($q) use ($userId) {
@@ -149,18 +158,39 @@ class ConversationController extends Controller
         $conversations = $query->latest('updated_at')
             ->get()
             ->map(function ($c) use ($userId) {
+                // Determine who the "other" user is
                 $other = $c->user_one_id === $userId ? $c->userTwo : $c->userOne;
+                $otherAvatar = $other->profile->avatar ?? null;
+                
+                // Logic for "New Interest" (Interest Request)
+                // - Status is pending
+                // - Current user is user_two (the receiver/product owner)
+                $isInterestRequest = ($c->status === 'pending' && $c->user_two_id === $userId);
+                
+                $lastMsg = $c->messages->first();
+                
                 return [
-                    'id'           => $c->id,
-                    'product'      => $c->product,
-                    'other_user'   => $other,
-                    'status'       => $c->status,
-                    'last_message' => $c->messages->first(),
-                    'unread_count' => $c->messages()
+                    'id'              => $c->id,
+                    'status'          => $c->status,
+                    'product'         => $c->product,
+                    'other_user'      => [
+                        'id'     => $other->id,
+                        'name'   => $other->name,
+                        'avatar' => $otherAvatar,
+                    ],
+                    'display_type'    => $isInterestRequest ? 'interest_request' : 'message',
+                    'display_title'   => $isInterestRequest ? 'New Interest' : ($other->name ?? 'User'),
+                    'display_message' => $isInterestRequest 
+                        ? ($other->name ?? 'Someone') . ' sent a interest request.' 
+                        : ($lastMsg->message_text ?? ''),
+                    'matched_on'      => $c->product->title ?? 'Product',
+                    'product_image'   => $c->product->product_image ?? null,
+                    'last_message'    => $lastMsg,
+                    'unread_count'    => $c->messages()
                         ->where('sender_id', '!=', $userId)
                         ->where('is_read', false)
                         ->count(),
-                    'updated_at'   => $c->updated_at,
+                    'updated_at'      => $c->updated_at,
                 ];
             });
 
@@ -173,9 +203,11 @@ class ConversationController extends Controller
     public function show(int $id): JsonResponse
     {
         $conversation = Conversation::with([
-            'product:id,name,images',
-            'userOne:id,name,avatar,phone,email',
-            'userTwo:id,name,avatar,phone,email',
+            'product:id,title,product_image,user_id',
+            'userOne:id,name,email',
+            'userOne.profile:id,user_id,avatar',
+            'userTwo:id,name,email',
+            'userTwo.profile:id,user_id,avatar',
         ])->findOrFail($id);
 
         if (!$conversation->hasUser(auth()->id())) {
