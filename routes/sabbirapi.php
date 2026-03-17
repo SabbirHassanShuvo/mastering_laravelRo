@@ -14,6 +14,7 @@ use App\Http\Controllers\API\Sabbir\ReportController;
 use App\Http\Controllers\API\Sabbir\ReviewController;
 use App\Http\Controllers\API\Sabbir\SpotlightController;
 use App\Http\Controllers\API\Sabbir\WebhookController;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
 Route::group(['middleware' => 'auth:api','prefix' => 'profile'], function ($router) {
@@ -135,3 +136,6 @@ Route::group(['middleware' => 'auth:api','prefix' => 'chat'], function ($router)
     Route::post('reports', [ReportController::class, 'store']);
 });
 
+Broadcast::routes([
+    'middleware' => ['auth:api'],
+]);

@@ -78,7 +78,7 @@ class ConversationController extends Controller
             'message_text'    => $data['message'],
         ]);
 
-        // 🔴 BROADCAST → private-user.{receiver_id}
+        // BROADCAST → private-user.{receiver_id}
         // Flutter receives this on the receiver's private channel
         broadcast(new ConversationStatusChanged($conversation))->toOthers();
 
@@ -120,19 +120,33 @@ class ConversationController extends Controller
     // ─────────────────────────────────────────────────────────────────
     // GET /api/conversations
     // ─────────────────────────────────────────────────────────────────
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         $userId = auth()->id();
+        $type = $request->query('type', 'all');
 
-        $conversations = Conversation::with([
-            'product:id,name,images',
+        $query = Conversation::with([
+            'product:id,title,product_image,user_id',
             'userOne:id,name,avatar',
             'userTwo:id,name,avatar',
             'messages' => fn($q) => $q->latest()->limit(1),
         ])
-            ->where('user_one_id', $userId)
-            ->orWhere('user_two_id', $userId)
-            ->latest('updated_at')
+            ->where(function ($q) use ($userId) {
+                $q->where('user_one_id', $userId)
+                  ->orWhere('user_two_id', $userId);
+            });
+
+        if ($type === 'selling') {
+            $query->whereHas('product', function ($q) use ($userId) {
+                $q->where('user_id', $userId);
+            });
+        } elseif ($type === 'buying') {
+            $query->whereHas('product', function ($q) use ($userId) {
+                $q->where('user_id', '!=', $userId);
+            });
+        }
+
+        $conversations = $query->latest('updated_at')
             ->get()
             ->map(function ($c) use ($userId) {
                 $other = $c->user_one_id === $userId ? $c->userTwo : $c->userOne;

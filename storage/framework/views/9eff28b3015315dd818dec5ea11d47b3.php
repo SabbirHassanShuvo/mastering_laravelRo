@@ -10,8 +10,8 @@
                 </div>
                 <div class="d-flex align-items-end justify-content-between mt-4">
                     <div>
-                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="{{ $totalUsers }}">0</span></h4>
-                        <a href="{{ route('backend.system-user.index') }}" class="text-decoration-underline">View all users</a>
+                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="<?php echo e($totalUsers); ?>">0</span></h4>
+                        <a href="<?php echo e(route('backend.system-user.index')); ?>" class="text-decoration-underline">View all users</a>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
                         <span class="avatar-title bg-soft-primary rounded fs-3">
@@ -34,7 +34,7 @@
                 </div>
                 <div class="d-flex align-items-end justify-content-between mt-4">
                     <div>
-                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="{{ $suspendedUsers }}">0</span></h4>
+                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="<?php echo e($suspendedUsers); ?>">0</span></h4>
                         <span class="text-muted">Currently suspended</span>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
@@ -58,7 +58,7 @@
                 </div>
                 <div class="d-flex align-items-end justify-content-between mt-4">
                     <div>
-                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="{{ $totalProducts }}">0</span></h4>
+                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="<?php echo e($totalProducts); ?>">0</span></h4>
                         <span class="text-muted">Total active listings</span>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
@@ -82,7 +82,7 @@
                 </div>
                 <div class="d-flex align-items-end justify-content-between mt-4">
                     <div>
-                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="{{ $totalGarageSales }}">0</span></h4>
+                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="<?php echo e($totalGarageSales); ?>">0</span></h4>
                         <span class="text-muted">Total garage events</span>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
@@ -108,7 +108,7 @@
                 </div>
                 <div class="d-flex align-items-end justify-content-between mt-4">
                     <div>
-                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="{{ $spotlightedProducts }}">0</span></h4>
+                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="<?php echo e($spotlightedProducts); ?>">0</span></h4>
                         <span class="text-muted">Boosted listings</span>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
@@ -132,8 +132,8 @@
                 </div>
                 <div class="d-flex align-items-end justify-content-between mt-4">
                     <div>
-                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="{{ $totalMatches }}">0</span> <small class="text-muted fs-13">Matches</small></h4>
-                        <span class="text-muted">{{ $totalPickups }} Pickups ({{ $completedPickups }} Completed)</span>
+                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="<?php echo e($totalMatches); ?>">0</span> <small class="text-muted fs-13">Matches</small></h4>
+                        <span class="text-muted"><?php echo e($totalPickups); ?> Pickups (<?php echo e($completedPickups); ?> Completed)</span>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
                         <span class="avatar-title bg-soft-primary rounded fs-3">
@@ -156,7 +156,7 @@
                 </div>
                 <div class="d-flex align-items-end justify-content-between mt-4">
                     <div>
-                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="{{ $totalReports }}">0</span></h4>
+                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="<?php echo e($totalReports); ?>">0</span></h4>
                         <span class="text-muted">User submitted reports</span>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
@@ -185,7 +185,7 @@
                 </div>
                 <div class="d-flex align-items-end justify-content-between mt-4">
                     <div>
-                        <h4 class="fs-22 fw-semibold ff-secondary mb-4">$<span class="counter-value" data-target="{{ round($totalRevenue, 2) }}">0</span></h4>
+                        <h4 class="fs-22 fw-semibold ff-secondary mb-4">$<span class="counter-value" data-target="<?php echo e(round($totalRevenue, 2)); ?>">0</span></h4>
                         <span class="text-muted">Platform earnings</span>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
@@ -197,4 +197,4 @@
             </div>
         </div>
     </div>
-</div>
+</div><?php /**PATH C:\Users\88013\Downloads\Sabbir\mastering_laravelRo\resources\views/backend/partials/stat-top.blade.php ENDPATH**/ ?>

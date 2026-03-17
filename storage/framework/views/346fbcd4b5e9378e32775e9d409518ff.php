@@ -20,7 +20,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($topSpotlightCities as $city)
+                            <?php $__empty_1 = true; $__currentLoopData = $topSpotlightCities; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $city): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                             <tr>
                                 <td>
                                     <div class="d-flex align-items-center">
@@ -30,21 +30,21 @@
                                             </div>
                                         </div>
                                         <div>
-                                            <h5 class="fs-14 my-1 fw-medium">{{ $city->pickup_location }}</h5>
+                                            <h5 class="fs-14 my-1 fw-medium"><?php echo e($city->pickup_location); ?></h5>
                                         </div>
                                     </div>
                                 </td>
                                 <td>
-                                    <span class="badge badge-soft-warning fs-12">{{ $city->total }} Boosts</span>
+                                    <span class="badge badge-soft-warning fs-12"><?php echo e($city->total); ?> Boosts</span>
                                 </td>
                             </tr>
-                            @empty
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                             <tr><td colspan="2" class="text-center text-muted py-4">No data available today</td></tr>
-                            @endforelse
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
-</div> 
+</div> <?php /**PATH C:\Users\88013\Downloads\Sabbir\mastering_laravelRo\resources\views/backend/partials/chart-2.blade.php ENDPATH**/ ?>
