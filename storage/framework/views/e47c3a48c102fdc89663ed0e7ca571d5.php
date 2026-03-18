@@ -1,7 +1,6 @@
-@extends('backend.master')
-@section('title', 'Payment Settings')
+<?php $__env->startSection('title', 'Payment Settings'); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="row justify-content-center py-4">
     <div class="col-xxl-9">
         <div class="card shadow-lg border-0">
@@ -17,17 +16,17 @@
                         <div class="nav flex-column nav-pills nav-pills-custom p-3" id="settingsTabs" role="tablist" aria-orientation="vertical">
                             <button class="nav-link active mb-2 text-start p-3" id="stripe-tab" data-bs-toggle="tab"
                                     data-bs-target="#stripe" type="button" role="tab"
-                                    data-uri="{{ route('backend.settings.payments.stripe.update') }}">
+                                    data-uri="<?php echo e(route('backend.settings.payments.stripe.update')); ?>">
                                 <i class="ri-stripe-line align-middle me-2 fs-18"></i> Stripe
                             </button>
                             <button class="nav-link mb-2 text-start p-3" id="sslcommerz-tab" data-bs-toggle="tab"
                                     data-bs-target="#sslcommerz" type="button" role="tab"
-                                    data-uri="{{ route('backend.settings.payments.stripe.test') }}">
+                                    data-uri="<?php echo e(route('backend.settings.payments.stripe.test')); ?>">
                                 <i class="ri-bank-card-line align-middle me-2 fs-18"></i> SSL COMMERZ
                             </button>
                             <button class="nav-link text-start p-3" id="other-tab" data-bs-toggle="tab"
                                     data-bs-target="#other" type="button" role="tab"
-                                    data-uri="{{ route('backend.settings.payments.stripe.test') }}">
+                                    data-uri="<?php echo e(route('backend.settings.payments.stripe.test')); ?>">
                                 <i class="ri-more-2-line align-middle me-2 fs-18"></i> Other Settings
                             </button>
                         </div>
@@ -48,7 +47,7 @@
                                         <div class="input-group">
                                             <span class="input-group-text bg-light"><i class="ri-key-line"></i></span>
                                             <input type="text" name="stripe_key" class="form-control"
-                                                   value="{{ env('STRIPE_KEY') }}" placeholder="pk_test_...">
+                                                   value="<?php echo e(env('STRIPE_KEY')); ?>" placeholder="pk_test_...">
                                         </div>
                                     </div>
                                     <div class="mb-3">
@@ -56,7 +55,7 @@
                                         <div class="input-group">
                                             <span class="input-group-text bg-light"><i class="ri-lock-line"></i></span>
                                             <input type="password" name="stripe_secret" class="form-control"
-                                                   value="{{ env('STRIPE_SECRET') }}" placeholder="sk_test_...">
+                                                   value="<?php echo e(env('STRIPE_SECRET')); ?>" placeholder="sk_test_...">
                                         </div>
                                     </div>
                                     <div class="mb-4">
@@ -64,7 +63,7 @@
                                         <div class="input-group">
                                             <span class="input-group-text bg-light"><i class="ri-webhook-line"></i></span>
                                             <input type="password" name="stripe_websocket_secret" class="form-control"
-                                                   value="{{ env('STRIPE_WEBHOOK_SECRET') }}" placeholder="whsec_...">
+                                                   value="<?php echo e(env('STRIPE_WEBHOOK_SECRET')); ?>" placeholder="whsec_...">
                                         </div>
                                     </div>
                                     <button type="submit" class="btn btn-primary w-100 py-2">
@@ -83,12 +82,12 @@
                                     <div class="mb-3">
                                         <label class="form-label fw-bold">Store ID</label>
                                         <input type="text" name="mail_host" class="form-control"
-                                               value="{{ env('MAIL_HOST') }}" placeholder="Enter Store ID">
+                                               value="<?php echo e(env('MAIL_HOST')); ?>" placeholder="Enter Store ID">
                                     </div>
                                     <div class="mb-4">
                                         <label class="form-label fw-bold">Store Password</label>
                                         <input type="password" name="mail_username" class="form-control"
-                                               value="{{ env('MAIL_USERNAME') }}" placeholder="Enter Store Password">
+                                               value="<?php echo e(env('MAIL_USERNAME')); ?>" placeholder="Enter Store Password">
                                     </div>
                                     <button type="submit" class="btn btn-success w-100 py-2">
                                         <i class="ri-save-line align-middle me-1"></i> Save SSL Commerz
@@ -106,12 +105,12 @@
                                     <div class="mb-3">
                                         <label class="form-label fw-bold">App Name</label>
                                         <input type="text" name="app_name" class="form-control"
-                                               value="{{ config('app.name') }}" placeholder="SwapApp">
+                                               value="<?php echo e(config('app.name')); ?>" placeholder="SwapApp">
                                     </div>
                                     <div class="mb-4">
                                         <label class="form-label fw-bold">App URL</label>
                                         <input type="text" name="app_url" class="form-control"
-                                               value="{{ config('app.url') }}" placeholder="https://swapapp.com">
+                                               value="<?php echo e(config('app.url')); ?>" placeholder="https://swapapp.com">
                                     </div>
                                     <button type="submit" class="btn btn-warning w-100 py-2 text-dark fw-bold">
                                         <i class="ri-save-line align-middle me-1"></i> Save Other Settings
@@ -138,9 +137,9 @@
         </div>
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('style-bottom')
+<?php $__env->startPush('style-bottom'); ?>
 <style>
     .nav-pills-custom .nav-link {
         border-radius: 0;
@@ -169,9 +168,9 @@
         border-radius: 10px;
     }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@push('scripts-bottom')
+<?php $__env->startPush('scripts-bottom'); ?>
     <script>
         $(function () {
             // ===== Remember Active Tab =====
@@ -205,7 +204,7 @@
                 $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Processing...');
                 $('#responseBox').text('> Requesting ' + $url + '...\n> sending data payload...');
 
-                const csrf = '{{ csrf_token() }}';
+                const csrf = '<?php echo e(csrf_token()); ?>';
 
                 $.ajax({
                     url: $url,
@@ -241,4 +240,5 @@
             });
         });
     </script>
-@endpush
+<?php $__env->stopPush(); ?>
+<?php echo $__env->make('backend.master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\88013\Downloads\Sabbir\mastering_laravelRo\resources\views/backend/layout/settings/payments-settings.blade.php ENDPATH**/ ?>

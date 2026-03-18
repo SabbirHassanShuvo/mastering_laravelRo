@@ -149,6 +149,13 @@
                         </ul>
                     </div>
                 </li>
+
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ request()->routeIs('backend.test_realtime') ? 'active' : '' }}"
+                        href="{{ route('backend.test_realtime') }}">
+                        <i class="ri-broadcast-line"></i> <span>Realtime Test</span>
+                    </a>
+                </li>
                 {{-- <li class="nav-item">
                     <a class="nav-link menu-link  {{ getPageStatus('backend.dashboard.*', 'collapsed active') }}"
                         href="#sidebarDashboards" role="button">

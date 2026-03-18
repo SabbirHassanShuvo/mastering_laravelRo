@@ -1,6 +1,4 @@
-@extends('backend.master')
-
-@push('style-bottom')
+<?php $__env->startPush('style-bottom'); ?>
 <style>
     .profile-wid-img {
         object-fit: cover;
@@ -25,14 +23,14 @@
         background-color: var(--vz-primary);
     }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 
     <!-- Profile Header -->
     <div class="position-relative mx-n4 mt-n4">
         <div class="profile-wid-bg profile-setting-img overflow-hidden">
-            <img src="{{ $profile->banner ? asset($profile->banner) : asset('assets/images/profile-bg.jpg')}}"
+            <img src="<?php echo e($profile->banner ? asset($profile->banner) : asset('assets/images/profile-bg.jpg')); ?>"
                 class="profile-wid-img" alt="Profile Banner">
             <div class="overlay-content p-3 h-100 d-flex align-items-start justify-content-end">
                 <div class="profile-photo-edit" style="z-index: 10;">
@@ -52,7 +50,7 @@
                 <div class="card-body p-4">
                     <div class="text-center">
                         <div class="profile-user position-relative d-inline-block mx-auto mb-4">
-                            <img src="{{$profile->avatar ? asset($profile->avatar) : asset('assets/images/users/avatar-1.jpg')}}"
+                            <img src="<?php echo e($profile->avatar ? asset($profile->avatar) : asset('assets/images/users/avatar-1.jpg')); ?>"
                                 class="rounded-circle avatar-xl img-thumbnail user-profile-image shadow-sm" alt="user-profile-image">
                             <div class="avatar-xs p-0 rounded-circle profile-photo-edit position-absolute bottom-0 end-0">
                                 <input id="profile-img-file-input" type="file" class="profile-img-file-input avatar-input d-none">
@@ -63,8 +61,8 @@
                                 </label>
                             </div>
                         </div>
-                        <h5 class="fs-18 mb-1 fw-bold text-dark">{{$user->name}}</h5>
-                        <p class="text-muted mb-4 fs-13"><i class="ri-mail-line me-1 align-bottom"></i> {{$user->email}}</p>
+                        <h5 class="fs-18 mb-1 fw-bold text-dark"><?php echo e($user->name); ?></h5>
+                        <p class="text-muted mb-4 fs-13"><i class="ri-mail-line me-1 align-bottom"></i> <?php echo e($user->email); ?></p>
                         
                         <div class="border-top border-top-dashed pt-4">
                             <div class="row text-center">
@@ -74,7 +72,7 @@
                                 </div>
                                 <div class="col-6">
                                     <h6 class="mb-1 fw-bold">Joined</h6>
-                                    <p class="text-muted mb-0 fs-12">{{ $user->created_at->format('M Y') }}</p>
+                                    <p class="text-muted mb-0 fs-12"><?php echo e($user->created_at->format('M Y')); ?></p>
                                 </div>
                             </div>
                         </div>
@@ -88,11 +86,11 @@
                     <ul class="list-unstyled mb-0">
                         <li class="d-flex align-items-center mb-2">
                             <i class="ri-phone-line me-2 text-muted"></i>
-                            <span class="fs-13">{{ $profile->phone ?? 'Not provided' }}</span>
+                            <span class="fs-13"><?php echo e($profile->phone ?? 'Not provided'); ?></span>
                         </li>
                         <li class="d-flex align-items-center">
                             <i class="ri-map-pin-2-line me-2 text-muted"></i>
-                            <span class="fs-13">{{ $profile->address ?? 'No address' }}</span>
+                            <span class="fs-13"><?php echo e($profile->address ?? 'No address'); ?></span>
                         </li>
                     </ul>
                 </div>
@@ -124,9 +122,9 @@
                                 <h6 class="fw-bold fs-15 mb-1">Edit Profile Infomation</h6>
                                 <p class="text-muted fs-13">Update your core profile details visible to the system.</p>
                             </div>
-                            <form action="{{route('backend.settings.profile.update')}}" method="post">
-                                @csrf
-                                @method('PATCH')
+                            <form action="<?php echo e(route('backend.settings.profile.update')); ?>" method="post">
+                                <?php echo csrf_field(); ?>
+                                <?php echo method_field('PATCH'); ?>
                                 <div class="row g-4">
                                     <div class="col-md-6">
                                         <div class="form-group mb-0">
@@ -134,7 +132,7 @@
                                             <div class="input-group">
                                                 <span class="input-group-text bg-light border-end-0"><i class="ri-user-follow-line text-muted"></i></span>
                                                 <input type="text" name="name" class="form-control border-start-0" 
-                                                    placeholder="Enter full name" value='{{old('name',$user->name)}}'>
+                                                    placeholder="Enter full name" value='<?php echo e(old('name',$user->name)); ?>'>
                                             </div>
                                         </div>
                                     </div>
@@ -145,7 +143,7 @@
                                             <div class="input-group">
                                                 <span class="input-group-text bg-light border-end-0"><i class="ri-phone-fill text-muted"></i></span>
                                                 <input type="text" name="phone" class="form-control border-start-0" 
-                                                    placeholder="+8801..." value='{{old('phone',$profile->phone)}}'>
+                                                    placeholder="+8801..." value='<?php echo e(old('phone',$profile->phone)); ?>'>
                                             </div>
                                         </div>
                                     </div>
@@ -156,7 +154,7 @@
                                             <div class="input-group">
                                                 <span class="input-group-text bg-light border-end-0"><i class="ri-map-pin-line text-muted"></i></span>
                                                 <textarea name="address" class="form-control border-start-0" rows="3"
-                                                    placeholder="Enter your detailed office/home address">{{old('address',$profile->address)}}</textarea>
+                                                    placeholder="Enter your detailed office/home address"><?php echo e(old('address',$profile->address)); ?></textarea>
                                             </div>
                                         </div>
                                     </div>
@@ -178,8 +176,8 @@
                                 <h6 class="fw-bold fs-15 mb-1">Update Password</h6>
                                 <p class="text-muted fs-13">Ensuring you have a strong password is key to account security.</p>
                             </div>
-                            <form action="{{route('auth.reset.post')}}" method="post">
-                                @csrf
+                            <form action="<?php echo e(route('auth.reset.post')); ?>" method="post">
+                                <?php echo csrf_field(); ?>
                                 <div class="row g-3">
                                     <div class="col-lg-4">
                                         <label class="form-label fw-semibold">Current Password</label>
@@ -233,9 +231,9 @@
             </div>
         </div>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts-bottom')
+<?php $__env->startPush('scripts-bottom'); ?>
     <script>
         function togglePasswordVisibility(inputId, button) {
             const input = document.getElementById(inputId);
@@ -258,11 +256,11 @@
             $('.avatar-input').on('change', function () {
                 const formData = new FormData();
                 formData.append('avatar', $(this)[0].files[0]);
-                formData.append('_token', "{{csrf_token()}}");
-                formData.append('profile_id', "{{$profile->id}}")
+                formData.append('_token', "<?php echo e(csrf_token()); ?>");
+                formData.append('profile_id', "<?php echo e($profile->id); ?>")
 
                 $.ajax({
-                    url: "{{route('backend.settings.profile.avatar.upload')}}",
+                    url: "<?php echo e(route('backend.settings.profile.avatar.upload')); ?>",
                     method: "POST",
                     data: formData,
                     processData: false,
@@ -294,11 +292,11 @@
             $('.profile-foreground-img-file-input').on('change', function () {
                 const formData = new FormData();
                 formData.append('banner', $(this)[0].files[0]);
-                formData.append('_token', "{{csrf_token()}}");
-                formData.append('profile_id', "{{$profile->id}}")
+                formData.append('_token', "<?php echo e(csrf_token()); ?>");
+                formData.append('profile_id', "<?php echo e($profile->id); ?>")
 
                 $.ajax({
-                    url: "{{route('backend.settings.profile.banner.upload')}}",
+                    url: "<?php echo e(route('backend.settings.profile.banner.upload')); ?>",
                     method: "POST",
                     data: formData,
                     processData: false,
@@ -326,4 +324,5 @@
             });
         });
     </script>
-@endpush
+<?php $__env->stopPush(); ?>
+<?php echo $__env->make('backend.master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\88013\Downloads\Sabbir\mastering_laravelRo\resources\views/backend/layout/settings/profile.blade.php ENDPATH**/ ?>

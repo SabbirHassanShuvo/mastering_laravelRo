@@ -4,7 +4,7 @@
     <div class="row">
         <div class="col-12">
             <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                <h4 class="mb-sm-0">Mail Settings</h4>
+                <h4 class="mb-sm-0">Mail Configuration</h4>
 
                 <div class="page-title-right">
                     <ol class="breadcrumb m-0">
@@ -12,135 +12,137 @@
                         <li class="breadcrumb-item active">Mail Settings</li>
                     </ol>
                 </div>
-
             </div>
         </div>
     </div>
     <!-- end page title -->
 
-    <div class="row">
-        <div class="col">
+    <div class="row justify-content-center">
+        <div class="col-xxl-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header align-items-center d-flex bg-primary p-3">
+                    <h4 class="card-title mb-0 flex-grow-1 text-white"><i class="ri-mail-send-line align-middle me-1"></i> SMTP Server Settings</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" action="{{ route('backend.settings.mail.update') }}" enctype="multipart/form-data">
+                        @csrf
+                        @method('PATCH')
 
-            <div class="h-100">
-                <div class="row mb-3 pb-1">
-                    <div class="col-12">
-                        <div class="d-flex justify-content-center mt-3 mt-lg-0">
-                            <div class="col-lg-8"> <!-- you can change 8 to 6 or 10 depending on desired width -->
-                                <form method="post" action="{{ route('backend.settings.mail.update') }}"
-                                    enctype="multipart/form-data" class="card p-4 shadow-sm">
-                                    @csrf
-                                    @method('PATCH')
+                        <div class="row g-4">
+                            <!-- Mailer & Host -->
+                            <div class="col-md-6">
+                                <label for="mail_mailer" class="form-label fw-bold">Mail Mailer</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="ri-server-line"></i></span>
+                                    <input class="form-control border-start-0 @error('mail_mailer') is-invalid @enderror"
+                                        id="mail_mailer" name="mail_mailer" placeholder="e.g. smtp"
+                                        type="text" value="{{ env('MAIL_MAILER') }}">
+                                </div>
+                                @error('mail_mailer')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </div>
 
-                                    <div class="row mb-4">
-                                        <label for="mail_mailer" class="col-md-3 form-label">MAIL MAILER</label>
-                                        <div class="col-md-9">
-                                            <input class="form-control @error('mail_mailer') is-invalid @enderror"
-                                                id="mail_mailer" name="mail_mailer" placeholder="Enter your mail mailer"
-                                                type="text" value="{{ env('MAIL_MAILER') }}">
-                                            @error('mail_mailer')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
+                            <div class="col-md-6">
+                                <label for="mail_host" class="form-label fw-bold">Mail Host</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="ri-link"></i></span>
+                                    <input class="form-control border-start-0 @error('mail_host') is-invalid @enderror"
+                                        id="mail_host" name="mail_host" placeholder="e.g. smtp.mailtrap.io" type="text"
+                                        value="{{ env('MAIL_HOST') }}">
+                                </div>
+                                @error('mail_host')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </div>
 
-                                    <div class="row mb-4">
-                                        <label for="mail_host" class="col-md-3 form-label">MAIL HOST</label>
-                                        <div class="col-md-9">
-                                            <input class="form-control @error('mail_host') is-invalid @enderror"
-                                                id="mail_host" name="mail_host" placeholder="Enter your host" type="text"
-                                                value="{{ env('MAIL_HOST') }}">
-                                            @error('mail_host')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
+                            <!-- Port & Encryption -->
+                            <div class="col-md-6">
+                                <label for="mail_port" class="form-label fw-bold">Mail Port</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="ri-door-open-line"></i></span>
+                                    <input class="form-control border-start-0 @error('mail_port') is-invalid @enderror"
+                                        id="mail_port" name="mail_port" placeholder="e.g. 2525"
+                                        type="text" value="{{ env('MAIL_PORT') }}">
+                                </div>
+                                @error('mail_port')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </div>
 
-                                    <div class="row mb-4">
-                                        <label for="mail_port" class="col-md-3 form-label">MAIL PORT</label>
-                                        <div class="col-md-9">
-                                            <input class="form-control @error('mail_port') is-invalid @enderror"
-                                                id="mail_port" name="mail_port" placeholder="Enter your mail port"
-                                                type="text" value="{{ env('MAIL_PORT') }}">
-                                            @error('mail_port')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
+                            <div class="col-md-6">
+                                <label for="mail_encryption" class="form-label fw-bold">Encryption</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="ri-shield-keyhole-line"></i></span>
+                                    <input class="form-control border-start-0 @error('mail_encryption') is-invalid @enderror"
+                                        id="mail_encryption" name="mail_encryption"
+                                        placeholder="e.g. tls" type="text"
+                                        value="{{ env('MAIL_ENCRYPTION') }}">
+                                </div>
+                                @error('mail_encryption')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </div>
 
-                                    <div class="row mb-4">
-                                        <label for="mail_username" class="col-md-3 form-label">MAIL USERNAME</label>
-                                        <div class="col-md-9">
-                                            <input class="form-control @error('mail_username') is-invalid @enderror"
-                                                id="mail_username" name="mail_username"
-                                                placeholder="Enter your mail username" type="text"
-                                                value="{{ env('MAIL_USERNAME') }}">
-                                            @error('mail_username')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
+                            <!-- Credentials -->
+                            <div class="col-md-6">
+                                <label for="mail_username" class="form-label fw-bold">Username</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="ri-user-settings-line"></i></span>
+                                    <input class="form-control border-start-0 @error('mail_username') is-invalid @enderror"
+                                        id="mail_username" name="mail_username"
+                                        placeholder="Enter SMTP username" type="text"
+                                        value="{{ env('MAIL_USERNAME') }}">
+                                </div>
+                                @error('mail_username')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </div>
 
-                                    <div class="row mb-4">
-                                        <label for="mail_password" class="col-md-3 form-label">MAIL PASSWORD</label>
-                                        <div class="col-md-9">
-                                            <input class="form-control @error('mail_password') is-invalid @enderror"
-                                                id="mail_password" name="mail_password"
-                                                placeholder="Enter your mail password" type="text"
-                                                value="{{ env('MAIL_PASSWORD') }}">
-                                            @error('mail_password')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
+                            <div class="col-md-6">
+                                <label for="mail_password" class="form-label fw-bold">Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="ri-lock-password-line"></i></span>
+                                    <input class="form-control border-start-0 @error('mail_password') is-invalid @enderror"
+                                        id="mail_password" name="mail_password"
+                                        placeholder="Enter SMTP password" type="password"
+                                        value="{{ env('MAIL_PASSWORD') }}">
+                                </div>
+                                @error('mail_password')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </div>
 
-                                    <div class="row mb-4">
-                                        <label for="mail_encryption" class="col-md-3 form-label">MAIL ENCRYPTION</label>
-                                        <div class="col-md-9">
-                                            <input class="form-control @error('mail_encryption') is-invalid @enderror"
-                                                id="mail_encryption" name="mail_encryption"
-                                                placeholder="Enter your mail encryption" type="text"
-                                                value="{{ env('MAIL_ENCRYPTION') }}">
-                                            @error('mail_encryption')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
+                            <!-- From Address -->
+                            <div class="col-12">
+                                <label for="mail_from_address" class="form-label fw-bold">Mail From Address</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="ri-at-line"></i></span>
+                                    <input class="form-control border-start-0 @error('mail_from_address') is-invalid @enderror"
+                                        id="mail_from_address" name="mail_from_address"
+                                        placeholder="e.g. info@swapapp.com" type="email"
+                                        value="{{ env('MAIL_FROM_ADDRESS') }}">
+                                </div>
+                                @error('mail_from_address')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </div>
 
-                                    <div class="row mb-4">
-                                        <label for="mail_from_address" class="col-md-3 form-label">MAIL FROM ADDRESS</label>
-                                        <div class="col-md-9">
-                                            <input class="form-control @error('mail_from_address') is-invalid @enderror"
-                                                id="mail_from_address" name="mail_from_address"
-                                                placeholder="Enter mail from address" type="text"
-                                                value="{{ env('MAIL_FROM_ADDRESS') }}">
-                                            @error('mail_from_address')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
-
-                                    <div class="row justify-content-end">
-                                        <div class="col-sm-9">
-                                            <button class="btn btn-primary" type="submit">
-                                                Submit
-                                            </button>
-                                        </div>
-                                    </div>
-                                </form>
+                            <!-- Action -->
+                            <div class="col-12 mt-4">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button class="btn btn-primary btn-label waves-effect waves-light px-4" type="submit">
+                                        <i class="ri-refresh-line label-icon align-middle fs-16 me-2"></i> Update SMTP Configuration
+                                    </button>
+                                </div>
                             </div>
                         </div>
-
-                    </div>
-                    <!--end col-->
+                    </form>
                 </div>
-
-
+                <div class="card-footer bg-light-subtle p-3">
+                    <p class="text-muted mb-0"><i class="ri-information-line align-middle me-1"></i> Changes will take effect immediately after saving.</p>
+                </div>
             </div>
-            <!-- end .h-100-->
-
         </div>
-        <!-- end col -->
-
     </div>
-
 @endsection

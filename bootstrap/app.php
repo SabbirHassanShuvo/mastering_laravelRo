@@ -23,7 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withBroadcasting(
         channels: __DIR__.'/../routes/channels.php',
-        attributes: ['middleware' => ['api', 'jwt.verify']],
+        attributes: ['middleware' => ['auth:api']],
     )   
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([

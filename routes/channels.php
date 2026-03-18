@@ -12,6 +12,11 @@ Broadcast::channel('user.{userId}', function ($user, $userId) {
 // Flutter subscribes: Echo.private('conversation.{conversationId}')
 // Receives: new messages, read receipts, pickup updates
 Broadcast::channel('conversation.{conversationId}', function ($user, $conversationId) {
+    // For testing/production diagnostics, allow ADMIN to join any channel
+    // if ($user->role === 'admin' || $user->role === 'ADMIN') {
+    //     return true;
+    // }
+
     $conversation = Conversation::find($conversationId);
 
     if (!$conversation) {

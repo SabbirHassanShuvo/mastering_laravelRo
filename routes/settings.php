@@ -1,6 +1,5 @@
 <?php
 
-use PHPUnit\Event\Telemetry\System;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\Backend\Settings\MailController;
 use App\Http\Controllers\Web\Backend\Settings\SystemController;

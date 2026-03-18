@@ -135,6 +135,13 @@
                         </ul>
                     </div>
                 </li>
+
+                <li class="nav-item">
+                    <a class="nav-link menu-link <?php echo e(request()->routeIs('backend.test_realtime') ? 'active' : ''); ?>"
+                        href="<?php echo e(route('backend.test_realtime')); ?>">
+                        <i class="ri-broadcast-line"></i> <span>Realtime Test</span>
+                    </a>
+                </li>
                 
                 <!-- end Dashboard Menu -->
 

@@ -4,9 +4,8 @@
         <?php echo csrf_field(); ?>
         <div class="mb-3">
             <label for="email" class="form-label">Email</label>
-            <input type="email" class="form-control" id="username" 
-                name="email" value="<?php echo e(old('email')); ?>"
-            placeholder="Enter email">
+            <input type="email" class="form-control" id="username" name="email" value="<?php echo e(old('email')); ?>"
+                placeholder="Enter email">
         </div>
 
         <div class="mb-3">
@@ -15,10 +14,10 @@
             </div>
             <label class="form-label" for="password-input">Password</label>
             <div class="position-relative auth-pass-inputgroup mb-3">
-                <input type="password" class="form-control pe-5 password-input" id="password-input"
-                    name="password"
-                 placeholder="Enter password">
-                <button class="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted password-addon" type="button" id="password-addon"><i class="ri-eye-fill align-middle"></i></button>
+                <input type="password" class="form-control pe-5 password-input" id="password-input" name="password"
+                    placeholder="Enter password">
+                <button class="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted password-addon"
+                    type="button" id="password-addon"><i class="ri-eye-fill align-middle"></i></button>
             </div>
         </div>
 
@@ -38,4 +37,5 @@
     <!-- password-custom logi -->
     <script src="<?php echo e(asset('assets/js/raihan/password-toggle.js')); ?>"></script>
 <?php $__env->stopPush(); ?>
+
 <?php echo $__env->make('backend.layout.auth.auth-app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\88013\Downloads\Sabbir\mastering_laravelRo\resources\views/backend/layout/auth/login.blade.php ENDPATH**/ ?>

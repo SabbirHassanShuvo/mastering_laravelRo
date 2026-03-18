@@ -12,198 +12,226 @@
                         <li class="breadcrumb-item active">System Settings</li>
                     </ol>
                 </div>
-
             </div>
         </div>
     </div>
     <!-- end page title -->
 
-    <div class="row">
-        <div class="col">
+    <form action="{{ route('backend.settings.system.update') }}" method="POST" enctype="multipart/form-data">
+        @csrf
+        @method('PUT')
 
-            <div class="h-100">
-                <div class="row mb-3 pb-1">
-                    <div class="col-12">
-                        <div class="d-flex align-items-lg-center flex-lg-row flex-column">
-                            <div class="mt-3 mt-lg-0">
-                                <form action="{{ route('backend.settings.system.update') }}" method="POST"
-                                    enctype="multipart/form-data">
-                                    @csrf
-                                    @method('PUT')
-                                    <div class="row g-3 mb-0 align-items-start">
-
-                                        <!-- Submit -->
-                                        <div class="col-12 mt-3 text-end">
-                                            <button type="submit" class="btn btn-soft-danger">
-                                                <i class="ri-save-line align-middle me-1"></i> Save Settings
-                                            </button>
-                                        </div>
-                                        <!-- Logo -->
-                                        <div class="col-md-4">
-                                            <label class="form-label">Logo</label>
-                                            <input type="file" name="logo"
-                                                class="dropify @error('logo') is-invalid @enderror" data-height="100"
-                                                @if(!empty($settings->logo))
-                                                data-default-file="{{ asset($settings->logo) }}" @endif>
-                                            @error('logo')
-                                                <span class="invalid-feedback d-block">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-
-                                        <!-- Mini Logo -->
-                                        <div class="col-md-4">
-                                            <label class="form-label">Mini Logo</label>
-                                            <input type="file" name="mini_logo"
-                                                class="dropify @error('mini_logo') is-invalid @enderror" data-height="100"
-                                                @if(!empty($settings->mini_logo))
-                                                data-default-file="{{ asset($settings->mini_logo) }}" @endif>
-                                            @error('mini_logo')
-                                                <span class="invalid-feedback d-block">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-
-                                        <!-- Icon -->
-                                        <div class="col-md-4">
-                                            <label class="form-label">Favicon / Icon</label>
-                                            <input type="file" name="icon"
-                                                class="dropify @error('icon') is-invalid @enderror" data-height="100"
-                                                @if(!empty($settings->icon))
-                                                data-default-file="{{ asset($settings->icon) }}" @endif>
-                                            @error('icon')
-                                                <span class="invalid-feedback d-block">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-
-                                        <!-- Title -->
-                                        <div class="col-md-6">
-                                            <label class="form-label">Website Title</label>
-                                            <input type="text" name="site_title"
-                                                class="form-control @error('site_title') is-invalid @enderror"
-                                                placeholder="Enter Website Title"
-                                                value="{{ old('site_title', $settings->site_title ?? '') }}">
-                                            @error('site_title')
-                                                <span class="invalid-feedback">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-
-                                        <!-- App Name -->
-                                        <div class="col-md-6">
-                                            <label class="form-label">App Name</label>
-                                            <input type="text" name="app_name"
-                                                class="form-control @error('app_name') is-invalid @enderror"
-                                                placeholder="Enter App Name"
-                                                value="{{ old('app_name', $settings->app_name ?? '') }}">
-                                            @error('app_name')
-                                                <span class="invalid-feedback">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-
-                                        <!-- Admin Dashboard Name -->
-                                        <div class="col-md-6">
-                                            <label class="form-label">Admin Dashboard Name</label>
-                                            <input type="text" name="admin_name"
-                                                class="form-control @error('admin_name') is-invalid @enderror"
-                                                placeholder="Enter Dashboard Name"
-                                                value="{{ old('admin_name', $settings->admin_name ?? '') }}">
-                                            @error('admin_name')
-                                                <span class="invalid-feedback">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-
-                                        <!-- Footer Settings -->
-                                        <div class="col-md-12">
-                                            <h5 class="mt-4">Footer Settings</h5>
-                                        </div>
-
-                                        <!-- Copyright -->
-                                        <div class="col-md-4">
-                                            <label class="form-label">Copyright Text</label>
-                                            <input type="text" name="copyright"
-                                                class="form-control @error('copyright') is-invalid @enderror"
-                                                placeholder="© 2025 MyCompany. All rights reserved."
-                                                value="{{ old('copyright', $settings->copyright ?? '') }}">
-                                            @error('copyright')
-                                                <span class="invalid-feedback">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-
-                                        <!-- Contact -->
-                                        <div class="col-md-4">
-                                            <label class="form-label">Contact Number</label>
-                                            <input type="text" name="contact"
-                                                class="form-control @error('contact') is-invalid @enderror"
-                                                placeholder="+1234547890"
-                                                value="{{ old('contact', $settings->contact ?? '') }}">
-                                            @error('contact')
-                                                <span class="invalid-feedback">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-
-                                        <!-- Email -->
-                                        <div class="col-md-4">
-                                            <label class="form-label">Contact Email</label>
-                                            <input type="email" name="email"
-                                                class="form-control @error('email') is-invalid @enderror"
-                                                placeholder="contact@example.com"
-                                                value="{{ old('email', $settings->email ?? '') }}">
-                                            @error('email')
-                                                <span class="invalid-feedback">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-
-                                        <!-- About -->
-                                        <div class="col-md-12">
-                                            <label class="form-label">About Section</label>
-                                            <textarea id="about-editor" name="about" rows="5" class="form-control"
-                                                placeholder="Write about your company or website...">{{ old('about', $settings->about ?? '') }}</textarea>
-                                        </div>
-                                    </div>
-                                </form>
+        <div class="row">
+            <!-- Branding Section -->
+            <div class="col-xxl-12">
+                <div class="card">
+                    <div class="card-header align-items-center d-flex">
+                        <h4 class="card-title mb-0 flex-grow-1"><i class="ri-palette-line align-middle me-1 text-primary"></i> Branding & Logos</h4>
+                        <div class="flex-shrink-0">
+                            <button type="submit" class="btn btn-primary btn-label waves-effect waves-light">
+                                <i class="ri-save-line label-icon align-middle fs-16 me-2"></i> Save Settings
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-4">
+                            <!-- Logo -->
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Company Logo</label>
+                                <input type="file" name="logo"
+                                    class="dropify @error('logo') is-invalid @enderror" data-height="120"
+                                    @if(!empty($settings->logo)) data-default-file="{{ asset($settings->logo) }}" @endif>
+                                @error('logo')
+                                    <span class="invalid-feedback d-block">{{ $message }}</span>
+                                @enderror
+                                <p class="text-muted mt-2 fs-12 text-center">Transparent background recommended (PNG/SVG)</p>
                             </div>
 
-                        </div><!-- end card header -->
+                            <!-- Mini Logo -->
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Mini Logo / Sidebar Logo</label>
+                                <input type="file" name="mini_logo"
+                                    class="dropify @error('mini_logo') is-invalid @enderror" data-height="120"
+                                    @if(!empty($settings->mini_logo)) data-default-file="{{ asset($settings->mini_logo) }}" @endif>
+                                @error('mini_logo')
+                                    <span class="invalid-feedback d-block">{{ $message }}</span>
+                                @enderror
+                                <p class="text-muted mt-2 fs-12 text-center">Small icon for collapsed sidebar</p>
+                            </div>
+
+                            <!-- Icon -->
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Favicon / Browser Icon</label>
+                                <input type="file" name="icon"
+                                    class="dropify @error('icon') is-invalid @enderror" data-height="120"
+                                    @if(!empty($settings->icon)) data-default-file="{{ asset($settings->icon) }}" @endif>
+                                @error('icon')
+                                    <span class="invalid-feedback d-block">{{ $message }}</span>
+                                @enderror
+                                <p class="text-muted mt-2 fs-12 text-center">Standard 32x32 or 64x64 icon</p>
+                            </div>
+                        </div>
                     </div>
-                    <!--end col-->
                 </div>
-
-
             </div>
-            <!-- end .h-100-->
 
+            <!-- General Settings -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title mb-0"><i class="ri-settings-4-line align-middle me-1 text-primary"></i> General Settings</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <label class="form-label">Website Title</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="ri-global-line"></i></span>
+                                <input type="text" name="site_title"
+                                    class="form-control @error('site_title') is-invalid @enderror"
+                                    placeholder="e.g. SwapApp - Professional Services"
+                                    value="{{ old('site_title', $settings->site_title ?? '') }}">
+                            </div>
+                            @error('site_title')
+                                <span class="invalid-feedback d-block">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">App Name</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="ri-app-store-line"></i></span>
+                                <input type="text" name="app_name"
+                                    class="form-control @error('app_name') is-invalid @enderror"
+                                    placeholder="e.g. SwapApp"
+                                    value="{{ old('app_name', $settings->app_name ?? 'SwapApp') }}">
+                            </div>
+                            @error('app_name')
+                                <span class="invalid-feedback d-block">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <div class="mb-0">
+                            <label class="form-label">Admin Dashboard Name</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="ri-dashboard-line"></i></span>
+                                <input type="text" name="admin_name"
+                                    class="form-control @error('admin_name') is-invalid @enderror"
+                                    placeholder="e.g. SwapApp Admin"
+                                    value="{{ old('admin_name', $settings->admin_name ?? 'SwapApp') }}">
+                            </div>
+                            @error('admin_name')
+                                <span class="invalid-feedback d-block">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact & Footer -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title mb-0"><i class="ri-contacts-book-2-line align-middle me-1 text-primary"></i> Contact & Footer</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <label class="form-label">Copyright Text</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="ri-copyright-line"></i></span>
+                                <input type="text" name="copyright"
+                                    class="form-control @error('copyright') is-invalid @enderror"
+                                    placeholder="© 2025 SwapApp. All rights reserved."
+                                    value="{{ old('copyright', $settings->copyright ?? '') }}">
+                            </div>
+                            @error('copyright')
+                                <span class="invalid-feedback d-block">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label">Contact Number</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="ri-phone-line"></i></span>
+                                    <input type="text" name="contact"
+                                        class="form-control @error('contact') is-invalid @enderror"
+                                        placeholder="+1234567890"
+                                        value="{{ old('contact', $settings->contact ?? '') }}">
+                                </div>
+                                @error('contact')
+                                    <span class="invalid-feedback d-block">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label">Contact Email</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="ri-mail-line"></i></span>
+                                    <input type="email" name="email"
+                                        class="form-control @error('email') is-invalid @enderror"
+                                        placeholder="contact@swapapp.com"
+                                        value="{{ old('email', $settings->email ?? '') }}">
+                                </div>
+                                @error('email')
+                                    <span class="invalid-feedback d-block">{{ $message }}</span>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="mb-0">
+                            <label class="form-label">About Section</label>
+                            <textarea id="about-editor" name="about" rows="3" class="form-control"
+                                placeholder="Brief summary for footer/about page...">{{ old('about', $settings->about ?? '') }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-12 mt-2 mb-4">
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary btn-label waves-effect waves-light">
+                        <i class="ri-save-line label-icon align-middle fs-16 me-2"></i> Save All Changes
+                    </button>
+                </div>
+            </div>
         </div>
-        <!-- end col -->
-
-    </div>
-
+    </form>
 @endsection
-
 
 @push('style-bottom')
     <style>
         .dropify-wrapper .dropify-message p {
-            line-height: 2;
-            /* increase spacing */
-            font-size: 16px;
-            /* adjust font size if needed */
+            line-height: 1.5;
+            font-size: 14px;
             color: #555;
-            /* custom text color */
+            font-weight: 500;
+        }
+        .card-title {
+            font-weight: 600;
+        }
+        .input-group-text {
+            background-color: #f3f6f9;
+            color: #495057;
         }
     </style>
 @endpush
+
 @push('scripts-top')
-    <!-- ckeditor -->
 <script src="https://cdn.ckeditor.com/ckeditor5/41.0.0/classic/ckeditor.js"></script>
     
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        ClassicEditor
-            .create(document.querySelector('#about-editor'))
-            .then(editor => {
-                console.log('CKEditor initialized', editor);
-            })
-            .catch(error => {
-                console.error('CKEditor error:', error);
-            });
+        if(document.querySelector('#about-editor')){
+            ClassicEditor
+                .create(document.querySelector('#about-editor'))
+                .then(editor \=\> {
+                    console.log('CKEditor initialized');
+                })
+                .catch(error \=\> {
+                    console.error('CKEditor error:', error);
+                });
+        }
     });
 </script>
 @endpush
+
