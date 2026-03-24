@@ -6,15 +6,19 @@ use App\Models\Pickup;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
-class PickupStatusChanged implements ShouldBroadcast
+class PickupStatusChanged implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public function __construct(public Pickup $pickup)
+    public $pickup;
+    public function __construct(Pickup $pickup)
     {
+        $this->pickup = $pickup;
     }
 
     /**
@@ -23,6 +27,7 @@ class PickupStatusChanged implements ShouldBroadcast
      */
     public function broadcastOn(): array
     {
+        Log::info('enter broadcast: ' . $this->pickup->conversation_id);
         return [
             new PrivateChannel('conversation.' . $this->pickup->conversation_id),
         ];
@@ -30,7 +35,7 @@ class PickupStatusChanged implements ShouldBroadcast
 
     public function broadcastAs(): string
     {
-        return 'pickup.status';
+        return 'pickup';
     }
 
     public function broadcastWith(): array

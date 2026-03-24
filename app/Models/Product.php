@@ -29,7 +29,8 @@ class Product extends Model
         'description',
         'pickup_latitude',
         'pickup_longitude',
-        'status'
+        'status',
+        'sold_at'
     ];
 
     protected $guarded = ['id'];
@@ -39,6 +40,7 @@ class Product extends Model
         'posted_at'  => 'datetime',
         'spotlight_start_date' => 'datetime',
         'spotlight_end_date'   => 'datetime',
+        'sold_at'    => 'datetime',
     ];
 
     // Relations

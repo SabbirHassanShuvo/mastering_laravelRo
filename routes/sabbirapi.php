@@ -42,6 +42,9 @@ Route::group(['middleware' => 'auth:api','prefix' => 'products'], function ($rou
     Route::get('/my-archived-products', [ProductsController::class, 'myArchivedProducts']);
     Route::get('/archived-product-details/{id}', [ProductsController::class, 'archivedProductDetails']);
 
+    // Mark Sold
+    Route::post('/{id}/sold', [ProductsController::class, 'markSold']);
+
     // Product Save And Unsave routes
     Route::post('/{id}/save', [ProductsController::class, 'toggleSave']);
     Route::get('/saved', [ProductsController::class, 'fetchSavedProducts']);

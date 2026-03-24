@@ -342,6 +342,39 @@ class ProductsController extends Controller
         ]);
     }
 
+    // Mark product as sold
+    public function markSold($id)
+    {
+        $product = Product::findOrFail($id);
+        // Ownership check
+        if ((int)$product->user_id !== (int)auth()->id()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Unauthorized. You do not own this product.'
+            ], 403);
+        }
+
+        if ($product->status === Product::STATUS_SOLD) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Product is already marked as sold.'
+            ], 400);
+        }
+
+        $product->status = Product::STATUS_SOLD;
+        $product->sold_at = now();
+        $product->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Product marked as sold successfully.',
+            'data' => [
+                'id' => $product->id,
+                'status' => $product->status
+            ]
+        ], 200);
+    }
+
     // listing all products
     // public function index()
     // {

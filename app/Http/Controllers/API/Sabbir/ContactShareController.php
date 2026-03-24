@@ -70,15 +70,15 @@ class ContactShareController extends Controller
         $contactData = null;
 
         if ($data['status'] === 'accepted') {
-            $requester   = User::find($share->requester_id);
+            $requester   = User::with('profile')->find($share->requester_id);
             $contactData = [
                 'user_name' => $requester->name,
                 'email'     => $requester->email,
-                'phone'     => $requester->phone,
+                'phone'     => $requester->profile->phone ?? null,
             ];
         }
 
-        // 🔴 BROADCAST → private-user.{requester_id}
+        // BROADCAST → private-user.{requester_id}
         broadcast(new ContactShareStatusChanged($share, $contactData))->toOthers();
 
         if ($data['status'] === 'rejected') {
