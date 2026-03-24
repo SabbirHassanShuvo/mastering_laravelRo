@@ -32,7 +32,7 @@ class ContactShareStatusChanged implements ShouldBroadcastNow
 
     public function broadcastAs(): string
     {
-        return 'contact.share.status';
+        return 'contact';
     }
 
     public function broadcastWith(): array

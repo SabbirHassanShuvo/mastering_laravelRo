@@ -70,11 +70,11 @@ class ContactShareController extends Controller
         $contactData = null;
 
         if ($data['status'] === 'accepted') {
-            $requester   = User::with('profile')->find($share->requester_id);
+            $receiver = auth()->user()->load('profile');
             $contactData = [
-                'user_name' => $requester->name,
-                'email'     => $requester->email,
-                'phone'     => $requester->profile->phone ?? null,
+                'user_name' => $receiver->name,
+                'email'     => $receiver->email,
+                'phone'     => $receiver->profile->phone ?? null,
             ];
         }
 
