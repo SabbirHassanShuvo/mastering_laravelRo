@@ -8,6 +8,7 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
 class ContactShareStatusChanged implements ShouldBroadcastNow
 {
@@ -25,8 +26,9 @@ class ContactShareStatusChanged implements ShouldBroadcastNow
      */
     public function broadcastOn(): array
     {
+        Log::info('enter contact broadcast: ' . $this->share->conversation_id);
         return [
-            new PrivateChannel('user.' . $this->share->requester_id),
+            new PrivateChannel('conversation.' . $this->share->conversation_id),
         ];
     }
 
@@ -37,10 +39,20 @@ class ContactShareStatusChanged implements ShouldBroadcastNow
 
     public function broadcastWith(): array
     {
+        // Load relations if not already loaded to ensure broadcast contains name data
+        if (!$this->share->relationLoaded('requester') || !$this->share->relationLoaded('receiver')) {
+            $this->share->load(['requester:id,name', 'receiver:id,name']);
+        }
+
         $payload = [
             'share_id'        => $this->share->id,
             'conversation_id' => $this->share->conversation_id,
+            'requester_id'    => $this->share->requester_id,
+            'requester_name'  => $this->share->requester->name ?? 'User',
+            'receiver_id'     => $this->share->receiver_id,
+            'receiver_name'   => $this->share->receiver->name ?? 'User',
             'status'          => $this->share->status,
+            'updated_at'      => $this->share->updated_at->toISOString(),
         ];
 
         if ($this->share->status === 'accepted' && $this->contactData) {

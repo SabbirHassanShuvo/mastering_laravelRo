@@ -39,12 +39,15 @@ class ContactShareController extends Controller
             return response()->json(['status' => false, 'message' => 'Request already sent.'], 409);
         }
 
-        ContactShare::create([
+        $share = ContactShare::create([
             'conversation_id' => $conversationId,
             'requester_id'    => $authId,
             'receiver_id'     => $receiverId,
             'status'          => 'pending',
         ]);
+
+        // BROADCAST → private-conversation.{id}
+        broadcast(new ContactShareStatusChanged($share))->toOthers();
 
         return response()->json(['status' => true, 'message' => 'Contact share request sent.']);
     }
@@ -78,8 +81,8 @@ class ContactShareController extends Controller
             ];
         }
 
-        // BROADCAST → private-user.{requester_id}
-        broadcast(new ContactShareStatusChanged($share, $contactData))->toOthers();
+        // BROADCAST → private-conversation.{id}
+        broadcast(new ContactShareStatusChanged($share->fresh(), $contactData))->toOthers();
 
         if ($data['status'] === 'rejected') {
             return response()->json(['status' => true, 'message' => 'Request rejected.']);
