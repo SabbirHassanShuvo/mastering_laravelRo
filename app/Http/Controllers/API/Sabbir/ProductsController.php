@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\API\Sabbir;
 
 use App\Http\Controllers\Controller;
-use App\Models\ArchivedProduct;
-use App\Models\Category;
+use App\Models\Conversation;
+use App\Models\Message;
 use App\Models\Matche;
 use App\Models\Product;
 use App\Models\ProductLove;
 use App\Models\SavedProduct;
+use App\Models\Category;
+use App\Models\ArchivedProduct;
+use App\Events\ConversationStatusChanged;
 use App\Notifications\InterestRequestNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -583,29 +586,55 @@ class ProductsController extends Controller
             ]);
         }
 
-        // Like
+        // 1. Like (Interest)
         ProductLove::firstOrCreate([
             'product_id' => $product->id,
             'user_id' => $user->id
         ]);
 
-        // Match 
+        // 2. Match (Owner is user_one, Liker is user_two)
         $match = Matche::firstOrCreate([
             'product_id' => $product->id,
             'user_one_id' => $product->user_id,
             'user_two_id' => $user->id
         ]);
 
-        // Notification
-        $product->user->notify(new InterestRequestNotification($product, $user));
+        // 3. Conversation (Requester is user_one, Owner is user_two)
+        $conversation = Conversation::where('product_id', $product->id)
+            ->where('user_one_id', $user->id)
+            ->where('user_two_id', $product->user_id)
+            ->first();
+
+        if (!$conversation) {
+            $conversation = Conversation::create([
+                'product_id'  => $product->id,
+                'user_one_id' => $user->id,
+                'user_two_id' => $product->user_id,
+                'status'      => 'pending',
+            ]);
+
+            // 4. System Message (Rahim sent an interest request.)
+            Message::create([
+                'conversation_id' => $conversation->id,
+                'sender_id'       => $user->id,
+                'message_text'    => "{$user->name} sent an interest request.",
+            ]);
+
+            // 5. Broadcast to Flutter for real-time list update
+            broadcast(new ConversationStatusChanged($conversation))->toOthers();
+
+            // 6. Push Notification & Database Alert
+            $product->user->notify(new InterestRequestNotification($product, $user, $conversation->id));
+        }
 
         return response()->json([
             'status' => true,
             'type' => 'like',
             'data' => [
+                'conversation_id' => $conversation->id,
                 'product' => [
                     'id' => $product->id,
-                    'image' => $product->image,
+                    'image' => $product->product_image, 
                     'price' => $product->price,
                 ],
                 'owner' => [

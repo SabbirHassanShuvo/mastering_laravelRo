@@ -80,7 +80,7 @@ class MessageController extends Controller
             'is_read'         => false,
         ]);
 
-        $message->load('sender');
+        $message->load(['sender.profile']);
 
         // Update conversation updated_at so it bubbles to top in list
         $conversation->touch();

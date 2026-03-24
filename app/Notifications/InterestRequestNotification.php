@@ -14,14 +14,16 @@ class InterestRequestNotification extends Notification
 
     protected $product;
     protected $matcher;
+    protected $conversationId;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(Product $product, User $matcher)
+    public function __construct(Product $product, User $matcher, $conversationId = null)
     {
         $this->product = $product;
         $this->matcher = $matcher;
+        $this->conversationId = $conversationId;
     }
 
     /**
@@ -38,11 +40,12 @@ class InterestRequestNotification extends Notification
     public function toDatabase($notifiable)
     {
         return [
-            'type'       => 'interest_request',
-            'title'      => 'New Interest!',
-            'message'    => "{$this->matcher->name} is interested in your '{$this->product->title}'.",
-            'product_id' => $this->product->id,
-            'matcher_id' => $this->matcher->id,
+            'type'            => 'interest_request',
+            'title'           => 'New Interest!',
+            'message'         => "{$this->matcher->name} is interested in your '{$this->product->title}'.",
+            'product_id'      => $this->product->id,
+            'matcher_id'      => $this->matcher->id,
+            'conversation_id' => $this->conversationId,
         ];
     }
 
@@ -52,11 +55,12 @@ class InterestRequestNotification extends Notification
     public function toBroadcast($notifiable)
     {
         return new BroadcastMessage([
-            'type'       => 'interest_request',
-            'title'      => 'New Interest!',
-            'message'    => "{$this->matcher->name} is interested in your '{$this->product->title}'.",
-            'product_id' => $this->product->id,
-            'matcher_id' => $this->matcher->id,
+            'type'            => 'interest_request',
+            'title'           => 'New Interest!',
+            'message'         => "{$this->matcher->name} is interested in your '{$this->product->title}'.",
+            'product_id'      => $this->product->id,
+            'matcher_id'      => $this->matcher->id,
+            'conversation_id' => $this->conversationId,
         ]);
     }
 }

@@ -31,7 +31,7 @@ class PickupController extends Controller
         }
 
         if ($conversation->status !== 'accepted') {
-            return response()->json(['status' => false, 'message' => 'Conversation must be accepted.'], 422);
+            return response()->json(['status' => false, 'message' => 'Conversation must be accepted to schedule a pickup.'], 422);
         }
 
         $pickup = Pickup::create([
@@ -46,13 +46,15 @@ class PickupController extends Controller
             'status'          => 'pending',
         ]);
 
+        $pickup->load(['product:id,title,product_image', 'requester:id,name', 'receiver:id,name']);
+
         // BROADCAST → private-conversation.{id}
-        broadcast(new PickupStatusChanged($pickup->fresh()))->toOthers();
+        broadcast(new PickupStatusChanged($pickup))->toOthers();
 
         return response()->json([
             'status'  => true,
             'message' => 'Pickup proposal sent.',
-            'data'    => ['pickup_id' => $pickup->id],
+            'data'    => $pickup,
         ], 201);
     }
 
@@ -104,7 +106,10 @@ class PickupController extends Controller
         $pickup->update(['status' => $data['status']]);
 
         if ($data['status'] === 'completed') {
-            $pickup->product()->update(['status' => 'sold']);
+            $pickup->product()->update([
+                'status'  => 'sold',
+                'sold_at' => now(),
+            ]);
         }
 
         // BROADCAST → private-conversation.{id}
@@ -124,14 +129,35 @@ class PickupController extends Controller
     public function index(int $conversationId): JsonResponse
     {
         $conversation = Conversation::findOrFail($conversationId);
+        $authId       = auth()->id();
 
-        if (!$conversation->hasUser(auth()->id())) {
+        if (!$conversation->hasUser($authId)) {
             return response()->json(['status' => false, 'message' => 'Unauthorized.'], 403);
         }
 
-        $pickups = Pickup::where('conversation_id', $conversationId)
+        $pickups = Pickup::with(['product:id,title,product_image', 'requester:id,name', 'receiver:id,name'])
+            ->where('conversation_id', $conversationId)
             ->latest()
-            ->get();
+            ->get()
+            ->map(fn($p) => [
+                'id'              => $p->id,
+                'conversation_id' => $p->conversation_id,
+                'product_id'      => $p->product_id,
+                'product_title'   => $p->product->title ?? 'Deleted Product',
+                'product_image'   => $p->product->product_image ?? null,
+                'requester_id'    => $p->requester_id,
+                'requester_name'  => $p->requester->name ?? 'User',
+                'receiver_id'     => $p->receiver_id,
+                'receiver_name'   => $p->receiver->name ?? 'User',
+                'pickup_date'     => $p->pickup_date,
+                'pickup_time'     => $p->pickup_time,
+                'location'        => $p->location,
+                'notes'           => $p->notes,
+                'status'          => $p->status,
+                'is_requester'    => $p->requester_id === $authId,
+                'created_at'      => $p->created_at->toISOString(),
+                'updated_at'      => $p->updated_at->toISOString(),
+            ]);
 
         return response()->json(['status' => true, 'data' => $pickups]);
     }

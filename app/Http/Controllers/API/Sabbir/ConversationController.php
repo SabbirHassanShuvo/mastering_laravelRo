@@ -16,79 +16,79 @@ class ConversationController extends Controller
     // ─────────────────────────────────────────────────────────────────
     // STEP 1 — POST /api/conversations/request
     // ─────────────────────────────────────────────────────────────────
-    public function request(Request $request): JsonResponse
-    {
-        $data = $request->validate([
-            'product_id'  => 'required|exists:products,id',
-            'receiver_id' => 'required|exists:users,id',
-            'message'     => 'required|string|max:2000',
-        ]);
+    // public function request(Request $request): JsonResponse
+    // {
+    //     $data = $request->validate([
+    //         'product_id'  => 'required|exists:products,id',
+    //         'receiver_id' => 'required|exists:users,id',
+    //         'message'     => 'required|string|max:2000',
+    //     ]);
 
-        $authId     = auth()->id();
-        $receiverId = (int) $data['receiver_id'];
-        $productId  = (int) $data['product_id'];
+    //     $authId     = auth()->id();
+    //     $receiverId = (int) $data['receiver_id'];
+    //     $productId  = (int) $data['product_id'];
 
-        if ($authId === $receiverId) {
-            return response()->json(['status' => false, 'message' => 'Cannot message yourself.'], 422);
-        }
+    //     if ($authId === $receiverId) {
+    //         return response()->json(['status' => false, 'message' => 'Cannot message yourself.'], 422);
+    //     }
 
-        // Verify match exists
-        $matched = Matche::where('product_id', $productId)
-            ->where(function ($q) use ($authId, $receiverId) {
-                $q->where('user_one_id', $authId)->where('user_two_id', $receiverId);
-            })
-            ->orWhere(function ($q) use ($authId, $receiverId, $productId) {
-                $q->where('product_id', $productId)
-                    ->where('user_one_id', $receiverId)
-                    ->where('user_two_id', $authId);
-            })->exists();
+    //     // Verify match exists
+    //     $matched = Matche::where('product_id', $productId)
+    //         ->where(function ($q) use ($authId, $receiverId) {
+    //             $q->where('user_one_id', $authId)->where('user_two_id', $receiverId);
+    //         })
+    //         ->orWhere(function ($q) use ($authId, $receiverId, $productId) {
+    //             $q->where('product_id', $productId)
+    //                 ->where('user_one_id', $receiverId)
+    //                 ->where('user_two_id', $authId);
+    //         })->exists();
 
-        if (!$matched) {
-            return response()->json(['status' => false, 'message' => 'Only matched users can start a conversation.'], 403);
-        }
+    //     if (!$matched) {
+    //         return response()->json(['status' => false, 'message' => 'Only matched users can start a conversation.'], 403);
+    //     }
 
-        // Check existing conversation
-        $existing = Conversation::where('product_id', $productId)
-            ->where(function ($q) use ($authId, $receiverId) {
-                $q->where('user_one_id', $authId)->where('user_two_id', $receiverId);
-            })
-            ->orWhere(function ($q) use ($authId, $receiverId, $productId) {
-                $q->where('product_id', $productId)
-                    ->where('user_one_id', $receiverId)
-                    ->where('user_two_id', $authId);
-            })->first();
+    //     // Check existing conversation
+    //     $existing = Conversation::where('product_id', $productId)
+    //         ->where(function ($q) use ($authId, $receiverId) {
+    //             $q->where('user_one_id', $authId)->where('user_two_id', $receiverId);
+    //         })
+    //         ->orWhere(function ($q) use ($authId, $receiverId, $productId) {
+    //             $q->where('product_id', $productId)
+    //                 ->where('user_one_id', $receiverId)
+    //                 ->where('user_two_id', $authId);
+    //         })->first();
 
-        if ($existing) {
-            return response()->json([
-                'status'  => false,
-                'message' => 'Conversation already exists.',
-                'data'    => ['conversation_id' => $existing->id],
-            ], 409);
-        }
+    //     if ($existing) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => 'Conversation already exists.',
+    //             'data'    => ['conversation_id' => $existing->id],
+    //         ], 409);
+    //     }
 
-        $conversation = Conversation::create([
-            'product_id'  => $productId,
-            'user_one_id' => $authId,
-            'user_two_id' => $receiverId,
-            'status'      => 'pending',
-        ]);
+    //     $conversation = Conversation::create([
+    //         'product_id'  => $productId,
+    //         'user_one_id' => $authId,
+    //         'user_two_id' => $receiverId,
+    //         'status'      => 'pending',
+    //     ]);
 
-        Message::create([
-            'conversation_id' => $conversation->id,
-            'sender_id'       => $authId,
-            'message_text'    => $data['message'],
-        ]);
+    //     Message::create([
+    //         'conversation_id' => $conversation->id,
+    //         'sender_id'       => $authId,
+    //         'message_text'    => $data['message'],
+    //     ]);
 
-        // BROADCAST → private-user.{receiver_id}
-        // Flutter receives this on the receiver's private channel
-        broadcast(new ConversationStatusChanged($conversation))->toOthers();
+    //     // BROADCAST → private-user.{receiver_id}
+    //     // Flutter receives this on the receiver's private channel
+    //     broadcast(new ConversationStatusChanged($conversation))->toOthers();
 
-        return response()->json([
-            'status'  => true,
-            'message' => 'Message request sent successfully.',
-            'data'    => ['conversation_id' => $conversation->id],
-        ], 201);
-    }
+    //     return response()->json([
+    //         'status'  => true,
+    //         'message' => 'Message request sent successfully.',
+    //         'data'    => ['conversation_id' => $conversation->id],
+    //     ], 201);
+    // }
 
     // ─────────────────────────────────────────────────────────────────
     // STEP 2 — POST /api/conversations/{id}/respond
@@ -99,29 +99,46 @@ class ConversationController extends Controller
         $conversation = Conversation::findOrFail($id);
 
         if ($conversation->user_two_id !== auth()->id()) {
-            return response()->json(['status' => false, 'message' => 'Unauthorized.'], 403);
+            return response()->json([
+                'status'  => false,
+                'message' => 'You are not allowed to respond to this conversation.',
+            ], 403);
         }
 
         if ($conversation->status !== 'pending') {
-            return response()->json(['status' => false, 'message' => 'Already responded.'], 422);
+            return response()->json([
+                'status'  => false,
+                'message' => 'You have already responded to this request.',
+            ], 422);
         }
 
-        $conversation->update(['status' => $data['status']]);
+        $productTitle = $conversation->product->title ?? 'this product';
+        $buyerName    = $conversation->userOne->name  ?? 'The user';
 
-        // Trigger Notification if accepted
-        if ($data['status'] === 'accepted') {
-            $buyer = $conversation->userOne;
-            $buyer->notify(new ConversationAcceptedNotification($conversation));
+        // ── Rejected ───────────────────────────────────────────────────
+        if ($data['status'] === 'rejected') {
+            broadcast(new ConversationStatusChanged($conversation))->toOthers();
+
+            $conversation->messages()->delete();
+            $conversation->delete();
+
+            return response()->json([
+                'status'  => true,
+                'message' => "You have declined {$buyerName}'s interest in \"{$productTitle}\".",
+            ]);
         }
 
-        // BROADCAST → private-user.{user_one_id} (the requester)
+        // ── Accepted ───────────────────────────────────────────────────
+        $conversation->update(['status' => 'accepted']);
+
+        $conversation->userOne->notify(new ConversationAcceptedNotification($conversation));
+
         broadcast(new ConversationStatusChanged($conversation->fresh()))->toOthers();
 
-        $msg = $data['status'] === 'accepted'
-            ? 'Conversation accepted. You can now chat.'
-            : 'Conversation rejected.';
-
-        return response()->json(['status' => true, 'message' => $msg]);
+        return response()->json([
+            'status'  => true,
+            'message' => "You accepted {$buyerName}'s interest in \"{$productTitle}\". You can now start chatting!",
+        ]);
     }
 
     // ─────────────────────────────────────────────────────────────────
@@ -140,9 +157,21 @@ class ConversationController extends Controller
             'userTwo.profile:id,user_id,avatar',
             'messages' => fn($q) => $q->latest()->limit(1),
         ])
-            ->where(function ($q) use ($userId) {
-                $q->where('user_one_id', $userId)
-                  ->orWhere('user_two_id', $userId);
+            ->where(function ($query) use ($userId) {
+                // Wrap visibility logic in a group
+                $query->where(function ($q) use ($userId) {
+                    // Case 1: Status is accepted -> both can see
+                    $q->where('status', 'accepted')
+                      ->where(function ($sq) use ($userId) {
+                          $sq->where('user_one_id', $userId)
+                             ->orWhere('user_two_id', $userId);
+                      });
+                })
+                ->orWhere(function ($q) use ($userId) {
+                    // Case 2: Status is pending -> only receiver (user_two) can see
+                    $q->where('status', 'pending')
+                      ->where('user_two_id', $userId);
+                });
             });
 
         if ($type === 'selling') {

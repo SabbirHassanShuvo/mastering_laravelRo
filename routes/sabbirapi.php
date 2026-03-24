@@ -111,7 +111,7 @@ Route::group(['middleware' => 'auth:api','prefix' => 'chat'], function ($router)
      // ── Conversations ──────────────────────────────────────────────
     Route::get('conversations',               [ConversationController::class, 'index']);
     Route::get('conversations/{id}',          [ConversationController::class, 'show']);
-    Route::post('conversations/request',      [ConversationController::class, 'request']);
+    // Route::post('conversations/request',      [ConversationController::class, 'request']);
     Route::post('conversations/{id}/respond', [ConversationController::class, 'respond']);
 
     // ── Messages ───────────────────────────────────────────────────
