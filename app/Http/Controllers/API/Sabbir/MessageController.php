@@ -5,10 +5,13 @@ namespace App\Http\Controllers\API\Sabbir;
 use App\Events\MessageRead;
 use App\Events\MessageSent;
 use App\Http\Controllers\Controller;
+use App\Models\ContactShare;
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Models\Pickup;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Storage;
 
 class MessageController extends Controller
 {
@@ -67,7 +70,7 @@ class MessageController extends Controller
             $imageBytes = str_replace(' ', '+', $imageBytes);
             $fileName = time() . '_image.' . $extension;
             $filePath = 'chat_files/' . $fileName;
-            \Storage::disk('public')->put($filePath, base64_decode($imageBytes));
+            Storage::disk('public')->put($filePath, base64_decode($imageBytes));
             $fileType = 'image';
         }
 
@@ -124,28 +127,81 @@ class MessageController extends Controller
             ->where('is_read', false)
             ->update(['is_read' => true]);
 
-        // BROADCAST read receipt if any messages were marked read
         if ($updated > 0) {
             broadcast(new MessageRead($conversationId, $authId))->toOthers();
         }
 
-        // Load sender with profile to get avatar
-        $messages = Message::with('sender.profile') // profile relation here
+        // 1. Fetch Messages
+        $messages = Message::with('sender.profile')
             ->where('conversation_id', $conversationId)
             ->oldest()
             ->get()
             ->map(fn($m) => [
-                'id'           => $m->id,
-                'sender_id'    => $m->sender_id,
-                'sender_name'  => $m->sender->name,
-                'sender_avatar'=> optional($m->sender->profile)->avatar, // profile.avatar
-                'message_text' => $m->message_text,
-                'file_url'     => $m->file_url,
-                'file_type'    => $m->file_type,
-                'is_read'      => $m->is_read,
-                'created_at'   => $m->created_at->toISOString(),
+                'id'            => $m->id,
+                'type'          => 'message',
+                'sender_id'     => $m->sender_id,
+                'sender_name'   => $m->sender->name,
+                'sender_avatar' => optional($m->sender->profile)->avatar,
+                'message_text'  => $m->message_text,
+                'file_url'      => $m->file_url,
+                'file_type'     => $m->file_type,
+                'is_read'       => $m->is_read,
+                'created_at'    => $m->created_at->toIso8601String(),
             ]);
 
-        return response()->json(['status' => true, 'data' => $messages]);
+        // 2. Fetch Pickups
+        $pickups = Pickup::with(['requester:id,name', 'receiver:id,name'])
+            ->where('conversation_id', $conversationId)
+            ->get()
+            ->map(fn($p) => [
+                'id'             => $p->id,
+                'type'           => 'pickup',
+                'requester_id'   => $p->requester_id,
+                'requester_name' => $p->requester->name ?? 'User',
+                'receiver_id'    => $p->receiver_id,
+                'receiver_name'  => $p->receiver->name ?? 'User',
+                'status'         => $p->status,
+                'pickup_date'    => $p->pickup_date,
+                'pickup_time'    => $p->pickup_time,
+                'location'       => $p->location,
+                'notes'          => $p->notes,
+                'created_at'     => $p->created_at->toIso8601String(),
+            ]);
+
+        // 3. Fetch Contact Shares
+        $shares = ContactShare::with(['requester:id,name,email', 'receiver:id,name,email', 'receiver.profile'])
+            ->where('conversation_id', $conversationId)
+            ->get()
+            ->map(function($s) {
+                $contactData = null;
+                if ($s->status === 'accepted') {
+                   // Logic: Original receiver (who accepted) shared their info
+                   $receiver = $s->receiver;
+                   if ($receiver) {
+                       $contactData = [
+                           'user_name' => $receiver->name,
+                           'email'     => $receiver->email,
+                           'phone'     => optional($receiver->profile)->phone,
+                       ];
+                   }
+                }
+                
+                return [
+                    'id'             => $s->id,
+                    'type'           => 'contact_share',
+                    'requester_id'   => $s->requester_id,
+                    'requester_name' => $s->requester->name ?? 'User',
+                    'receiver_id'    => $s->receiver_id,
+                    'receiver_name'  => $s->receiver->name ?? 'User',
+                    'status'         => $s->status,
+                    'contact'        => $contactData,
+                    'created_at'     => $s->created_at->toIso8601String(),
+                ];
+            });
+
+        // Combine and Sort by created_at
+        $combined = $messages->concat($pickups)->concat($shares)->sortBy('created_at')->values();
+
+        return response()->json(['status' => true, 'data' => $combined]);
     }
 }

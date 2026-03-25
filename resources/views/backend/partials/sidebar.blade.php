@@ -2,7 +2,7 @@
     <!-- LOGO -->
     <div class="navbar-brand-box">
         <!-- Dark Logo-->
-        <a href="index.html" class="logo logo-dark">
+        <a href="{{ route('backend.dashboard.index') }}" class="logo logo-dark">
             <span class="logo-sm">
                 <img src="{{ $settings->mini_logo ? asset($settings->mini_logo) : asset('assets/images/logo-sm.png') }}"
                     alt="" height="22">
@@ -13,7 +13,7 @@
             </span>
         </a>
         <!-- Light Logo-->
-        <a href="index.html" class="logo logo-light">
+        <a href="{{ route('backend.dashboard.index') }}" class="logo logo-light">
             <span class="logo-sm">
                 <img src="{{ $settings->mini_logo ? asset($settings->mini_logo) : asset('assets/images/logo-sm.png') }}"
                     alt="" height="22">
@@ -140,7 +140,8 @@
                             </li>
                             <li class="nav-item">
                                 <a href="{{ route('backend.messaging.pickups') }}"
-                                    class="nav-link {{ request()->routeIs('backend.messaging.pickups') }}">Pickup Requests</a>
+                                    class="nav-link {{ request()->routeIs('backend.messaging.pickups') }}">Pickup
+                                    Requests</a>
                             </li>
                             <li class="nav-item">
                                 <a href="{{ route('backend.messaging.analytics') }}"

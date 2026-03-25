@@ -45,14 +45,15 @@ class ContactShareStatusChanged implements ShouldBroadcastNow
         }
 
         $payload = [
-            'share_id'        => $this->share->id,
+            'id'              => $this->share->id,
+            'type'            => 'contact_share',
             'conversation_id' => $this->share->conversation_id,
             'requester_id'    => $this->share->requester_id,
             'requester_name'  => $this->share->requester->name ?? 'User',
             'receiver_id'     => $this->share->receiver_id,
             'receiver_name'   => $this->share->receiver->name ?? 'User',
             'status'          => $this->share->status,
-            'updated_at'      => $this->share->updated_at->toISOString(),
+            'created_at'      => $this->share->created_at->toIso8601String(),
         ];
 
         if ($this->share->status === 'accepted' && $this->contactData) {

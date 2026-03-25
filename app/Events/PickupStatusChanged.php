@@ -46,7 +46,8 @@ class PickupStatusChanged implements ShouldBroadcastNow
         }
 
         return [
-            'pickup_id'       => $this->pickup->id,
+            'id'              => $this->pickup->id,
+            'type'            => 'pickup',
             'conversation_id' => $this->pickup->conversation_id,
             'product_id'      => $this->pickup->product_id,
             'product_title'   => $this->pickup->product->title ?? 'Product',
@@ -59,7 +60,7 @@ class PickupStatusChanged implements ShouldBroadcastNow
             'location'        => $this->pickup->location,
             'notes'           => $this->pickup->notes,
             'status'          => $this->pickup->status,
-            'updated_at'      => $this->pickup->updated_at->toISOString(),
+            'created_at'      => $this->pickup->created_at->toIso8601String(),
         ];
     }
 }
