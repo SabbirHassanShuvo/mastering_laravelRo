@@ -332,7 +332,7 @@ class ProductsController extends Controller
                 'condition' => $product->condition_status,
                 'category' => [
                     'id' => $product->category->id,
-                    'name' => $product->category->name
+                    'name' => $product->category->title
                 ],
                 'interest_count' => $product->loves()->count(),
                 'description' => $product->description,
@@ -429,7 +429,8 @@ class ProductsController extends Controller
             ], 400);
         }
 
-        $products = Product::where('status', $request->status)
+        $products = Product::where('user_id', auth()->id())
+            ->where('status', $request->status)
             ->withCount('loves') // interest count
             ->get()
             ->map(function ($product) {
@@ -463,15 +464,15 @@ class ProductsController extends Controller
                 'price' => $product->price,
                 'status' => $product->status,
                 'created_at' => $product->created_at->toDateTimeString(),
-                'condition' => $product->condition,
+                'condition' => $product->condition_status,
                 'category' => [
                     'id' => $product->category->id,
-                    'name' => $product->category->name
+                    'name' => $product->category->title
                 ],
                 'interest_count' => $product->loves_count,
                 'description' => $product->description,
-                'latitude' => $product->latitude,
-                'longitude' => $product->longitude,
+                'latitude' => $product->pickup_latitude,
+                'longitude' => $product->pickup_longitude,
             ]
         ]);
     }

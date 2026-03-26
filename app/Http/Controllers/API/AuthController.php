@@ -557,6 +557,11 @@ class AuthController extends BaseController
             ], 401);
         }
 
+        // Rename the email to free up the unique constraint while keeping the record (SoftDelete)
+        $user->update([
+            'email' => $user->email . '::deleted::' . now()->timestamp
+        ]);
+
         // Soft delete the user
         $user->delete();
 

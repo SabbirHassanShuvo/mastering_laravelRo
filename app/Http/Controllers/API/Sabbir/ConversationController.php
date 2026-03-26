@@ -150,7 +150,7 @@ class ConversationController extends Controller
         $type = $request->query('type', 'all');
 
         $query = Conversation::with([
-            'product:id,title,product_image,user_id',
+            'product:id,title,product_image,user_id,price',
             'userOne:id,name',
             'userOne.profile:id,user_id,avatar',
             'userTwo:id,name',
@@ -214,6 +214,7 @@ class ConversationController extends Controller
                         : ($lastMsg->message_text ?? ''),
                     'matched_on'      => $c->product->title ?? 'Product',
                     'product_image'   => $c->product->product_image ?? null,
+                    'product_price'   => $c->product->price ?? null,
                     'last_message'    => $lastMsg,
                     'unread_count'    => $c->messages()
                         ->where('sender_id', '!=', $userId)
@@ -232,7 +233,7 @@ class ConversationController extends Controller
     public function show(int $id): JsonResponse
     {
         $conversation = Conversation::with([
-            'product:id,title,product_image,user_id',
+            'product:id,title,product_image,user_id,price',
             'userOne:id,name,email',
             'userOne.profile:id,user_id,avatar',
             'userTwo:id,name,email',
