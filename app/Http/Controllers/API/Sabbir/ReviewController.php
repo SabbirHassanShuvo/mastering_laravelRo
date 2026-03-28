@@ -40,7 +40,7 @@ class ReviewController extends Controller
             return response()->json(['status' => false, 'message' => 'You already reviewed this pickup.'], 409);
         }
 
-        Review::create([
+        $review = Review::create([
             'pickup_id'   => $pickup->id,
             'product_id'  => $pickup->product_id,
             'reviewer_id' => $authId,
@@ -48,6 +48,9 @@ class ReviewController extends Controller
             'rating'      => $data['rating'],
             'comment'     => $data['comment'] ?? null,
         ]);
+
+        // Automatic Verification Check
+        $review->reviewee->checkVerifyStatus();
 
         return response()->json(['status' => true, 'message' => 'Thank you for your review.'], 201);
     }

@@ -31,6 +31,10 @@ class SystemUserController extends Controller
                 return getStatusHTML($data, $backgroundColor, $sliderTranslateX);
             })
             ->addColumn('action', function ($data) {
+                $verifyBtn = '<button onclick="toggleVerify(' . $data->id . ')" type="button" class="btn btn-soft-success btn-sm action-btn" title="' . ($data->is_verified ? 'Unverify User' : 'Verify User') . '">
+                                <i class="' . ($data->is_verified ? 'ri-checkbox-circle-fill' : 'ri-checkbox-circle-line') . '"></i>
+                            </button>';
+                            
                 $editBtn = '<button onclick="edit(' . $data->id . ')" type="button" class="btn btn-soft-primary btn-sm action-btn">
                                 <i class="ri-pencil-fill"></i>
                             </button>';
@@ -42,7 +46,7 @@ class SystemUserController extends Controller
                                 </button>';
                 }
 
-                return '<div class="d-flex gap-2 justify-content-center">' . $editBtn . $deleteBtn . '</div>';
+                return '<div class="d-flex gap-2 justify-content-center">' . $verifyBtn . $editBtn . $deleteBtn . '</div>';
             })
             ->rawColumns([ 'status', 'action'])
             ->make(true);
@@ -142,6 +146,26 @@ class SystemUserController extends Controller
             return response()->json([
                 'success' => false, 
                 'message' => 'Status Change Failed: '. $e->getMessage() 
+            ], 500);
+        }
+    }
+
+    public function toggleVerify($id)
+    {
+        try {
+            $user = User::findOrFail($id);
+            $user->is_verified = !$user->is_verified;
+            $user->save();
+
+            $statusText = $user->is_verified ? 'Verified' : 'Unverified';
+            return response()->json([
+                'success' => true,
+                'message' => 'User ' . $statusText . ' Successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Verification Failed: ' . $e->getMessage()
             ], 500);
         }
     }

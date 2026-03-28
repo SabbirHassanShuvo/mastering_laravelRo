@@ -46,6 +46,9 @@ Route::group([ 'as'=>'backend.'], function () {
     
     Route::post('system-user/status/{id}', [SystemUserController::class,'status'])
     ->name('system-user.status');
+
+    Route::post('system-user/verify/{id}', [SystemUserController::class,'toggleVerify'])
+    ->name('system-user.verify');
     
     Route::resource('system-user', SystemUserController::class)
     ->except(['show']);

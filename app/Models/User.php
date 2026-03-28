@@ -14,6 +14,9 @@ use Laravel\Sanctum\HasApiTokens;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 use MatanYadaev\EloquentSpatial\Objects\Polygon;
 use MatanYadaev\EloquentSpatial\Traits\HasSpatial;
+use App\Models\Pickup;
+use App\Models\Report;
+use App\Models\Review;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject; 
 
 class User extends Authenticatable implements JWTSubject
@@ -116,5 +119,36 @@ class User extends Authenticatable implements JWTSubject
     public function lovedProducts()
     {
         return $this->belongsToMany(Product::class,'product_loves');
+    }
+
+    /**
+     * Automatically verify user based on:
+     * 1. At least 3 successful pickups.
+     * 2. No reports.
+     * 3. Minimum average rating of 4.
+     */
+    public function checkVerifyStatus()
+    {
+        // 1. Successful pickups count >= 3
+        $completedPickupsCount = Pickup::where('status', 'completed')
+            ->where(function($q) {
+                $q->where('requester_id', $this->id)
+                  ->orWhere('receiver_id', $this->id);
+            })
+            ->count();
+
+        // 2. No reports (reported_id is this user)
+        $reportsCount = Report::where('reported_id', $this->id)->count();
+
+        // 3. Minimum average rating of 4
+        $averageRating = Review::where('reviewee_id', $this->id)->avg('rating');
+
+        $isEligible = ($completedPickupsCount >= 3) && 
+                      ($reportsCount === 0) && 
+                      ($averageRating !== null && $averageRating >= 4);
+
+        if ($this->is_verified !== $isEligible) {
+            $this->update(['is_verified' => $isEligible]);
+        }
     }
 }

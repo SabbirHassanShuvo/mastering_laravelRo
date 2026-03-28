@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API\Sabbir;
 
 use App\Http\Controllers\Controller;
 use App\Models\Report;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -30,6 +31,9 @@ class ReportController extends Controller
             'reason'      => $data['reason'],
             'description' => $data['description'] ?? null,
         ]);
+
+        // Automatic Verification Check (Disqualify if report exists)
+        User::find($data['reported_id'])->checkVerifyStatus();
 
         return response()->json([
             'status'  => true,

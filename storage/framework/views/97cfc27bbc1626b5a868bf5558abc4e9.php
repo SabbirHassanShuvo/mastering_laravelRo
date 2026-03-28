@@ -1,7 +1,6 @@
-@extends('backend.master')
-@section('title', 'System User Management')
+<?php $__env->startSection('title', 'System User Management'); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
     <style>
         .user-card {
             border: none;
@@ -63,7 +62,7 @@
         }
     </style>
 
-    {{-- PAGE-HEADER --}}
+    
     <div class="row">
         <div class="col-12">
             <div class="page-title-box d-sm-flex align-items-center justify-content-between mb-4">
@@ -80,7 +79,7 @@
             </div>
         </div>
     </div>
-    {{-- PAGE-HEADER --}}
+    
 
     <div class="row">
         <div class="col-12">
@@ -125,7 +124,7 @@
                 </div>
                 <div class="modal-body p-4">
                     <form id="userForm">
-                        @csrf
+                        <?php echo csrf_field(); ?>
                         <input type="hidden" id="user_id" name="id">
                         <input type="hidden" name="is_admin_user" value="1">
 
@@ -166,16 +165,16 @@
         </div>
     </div>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts-bottom')
+<?php $__env->startPush('scripts-bottom'); ?>
     <script>
         $(document).ready(function() {
             // DataTable Initialization
             $('#datatable').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: "{{ route('backend.system-user.index') }}",
+                ajax: "<?php echo e(route('backend.system-user.index')); ?>",
                 columns: [{
                         data: 'DT_RowIndex',
                         name: 'DT_RowIndex',
@@ -248,8 +247,8 @@
                 e.preventDefault();
                 let formData = new FormData(this);
                 let id = $('#user_id').val();
-                let url = id ? "{{ route('backend.system-user.update', ':id') }}".replace(':id', id) :
-                    "{{ route('backend.system-user.store') }}";
+                let url = id ? "<?php echo e(route('backend.system-user.update', ':id')); ?>".replace(':id', id) :
+                    "<?php echo e(route('backend.system-user.store')); ?>";
 
                 if (id) formData.append('_method', 'PATCH');
 
@@ -295,7 +294,7 @@
         }
 
         function edit(id) {
-            let url = "{{ route('backend.system-user.edit', ':id') }}".replace(':id', id);
+            let url = "<?php echo e(route('backend.system-user.edit', ':id')); ?>".replace(':id', id);
             $.get(url, function(response) {
                 if (response.success) {
                     $('#user_id').val(response.user.id);
@@ -330,8 +329,8 @@
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    $.post("{{ route('backend.system-user.status', ':id') }}".replace(':id', id), {
-                        _token: "{{ csrf_token() }}",
+                    $.post("<?php echo e(route('backend.system-user.status', ':id')); ?>".replace(':id', id), {
+                        _token: "<?php echo e(csrf_token()); ?>",
                         reason: result.value
                     }, function(response) {
                         if (response.success) {
@@ -363,10 +362,10 @@
                 if (result.isConfirmed) {
                     $.ajax({
                         type: "POST",
-                        url: "{{ route('backend.system-user.destroy', ':id') }}".replace(':id', id),
+                        url: "<?php echo e(route('backend.system-user.destroy', ':id')); ?>".replace(':id', id),
                         data: {
                             _method: "DELETE",
-                            _token: "{{ csrf_token() }}"
+                            _token: "<?php echo e(csrf_token()); ?>"
                         },
                         success: function(response) {
                             $('#datatable').DataTable().ajax.reload(null, false);
@@ -393,8 +392,8 @@
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    $.post("{{ route('backend.system-user.verify', ':id') }}".replace(':id', id), {
-                        _token: "{{ csrf_token() }}"
+                    $.post("<?php echo e(route('backend.system-user.verify', ':id')); ?>".replace(':id', id), {
+                        _token: "<?php echo e(csrf_token()); ?>"
                     }, function(response) {
                         if (response.success) {
                             $('#datatable').DataTable().ajax.reload(null, false);
@@ -409,4 +408,6 @@
             });
         }
     </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('backend.master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\88013\Herd\mastering_laravelRo\resources\views/backend/layout/users/system_users/index.blade.php ENDPATH**/ ?>

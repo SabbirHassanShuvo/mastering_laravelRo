@@ -110,6 +110,10 @@ class PickupController extends Controller
                 'status'  => 'sold',
                 'sold_at' => now(),
             ]);
+
+            // Automatic Verification Check
+            $pickup->requester->checkVerifyStatus();
+            $pickup->receiver->checkVerifyStatus();
         }
 
         // BROADCAST → private-conversation.{id}
