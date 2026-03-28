@@ -11,7 +11,7 @@ class SpotlightPayment extends Model
      protected $fillable = [
         'user_id', 'product_id',
         'stripe_payment_intent_id', 'stripe_payment_method_id',
-        'amount', 'currency', 'boost_plan', 'boost_hours',
+        'amount', 'posting_fee', 'total_fee', 'currency', 'boost_plan', 'boost_hours',
         'status', 'spotlight_start_at', 'spotlight_end_at',
     ];
 

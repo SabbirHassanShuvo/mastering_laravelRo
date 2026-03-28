@@ -7,6 +7,7 @@ use App\Models\GarageArchived;
 use App\Models\GarageItem;
 use App\Models\GarageLove;
 use App\Models\GarageSale;
+use App\Models\Setting;
 use App\Services\StripePaymentService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -169,6 +170,9 @@ class GarageSalesController extends Controller
         // Generate a temporary payload ID
         $payloadId = uniqid('garage_payload_');
 
+        $settings = Setting::first();
+        $fee = (float) ($settings->garage_fee ?? 2.99);
+
         $fullData = [
             'user_id'         => auth()->id(),
             'event_title'     => $request->event_title,
@@ -180,6 +184,8 @@ class GarageSalesController extends Controller
             'latitude'        => $request->latitude ?? null,
             'longitude'       => $request->longitude ?? null,
             'expires_at'      => now()->addDays(7)->toDateTimeString(),
+            'posting_fee'     => $fee,
+            'total_fee'       => $fee,
             'items'           => json_encode($processedItems),
         ];
 

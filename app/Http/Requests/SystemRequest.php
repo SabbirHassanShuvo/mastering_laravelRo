@@ -33,6 +33,8 @@ class SystemRequest extends FormRequest
             'contact'     => 'nullable|string|max:20',
             'email'       => 'nullable|email|max:255',
             'about'       => 'nullable|string',
+            'garage_fee'  => 'required|numeric|min:0',
+            'spotlight_fee' => 'required|numeric|min:0',
         ];
     }
 }

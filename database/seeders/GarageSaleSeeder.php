@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\GarageItem;
 use App\Models\GarageItemImage;
 use App\Models\GarageSale;
+use App\Models\Setting;
 use Carbon\Carbon;
 use Faker\Factory as Faker;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -21,6 +22,9 @@ class GarageSaleSeeder extends Seeder
             $saleStart = $faker->dateTimeBetween('-1 month', '+1 month');
             $saleEnd = (clone $saleStart)->modify('+'.rand(1,5).' days');
 
+            $settings = Setting::first();
+            $fee = $settings->garage_fee ?? 2.99;
+
             $garage = GarageSale::create([
                 'user_id' => $userId,
                 'event_title' => $faker->sentence(3),
@@ -30,8 +34,8 @@ class GarageSaleSeeder extends Seeder
                 'sale_start_date' => $saleStart,
                 'sale_end_date' => $saleEnd,
                 'expires_at' => Carbon::parse($saleEnd)->addDays(7),
-                'posting_fee' => 2.99,
-                'total_fee' => $faker->randomFloat(2, 10, 100),
+                'posting_fee' => $fee,
+                'total_fee' => $fee,
                 'status' => 'active',
             ]);
 

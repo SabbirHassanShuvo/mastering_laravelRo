@@ -187,6 +187,46 @@
                 </div>
             </div>
             
+            <!-- Service Fees -->
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title mb-0"><i class="ri-money-dollar-circle-line align-middle me-1 text-primary"></i> Service Fees</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label">Garage Sale Creation Fee ($)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="ri-coins-line"></i></span>
+                                    <input type="number" step="0.01" name="garage_fee"
+                                        class="form-control @error('garage_fee') is-invalid @enderror"
+                                        placeholder="2.99"
+                                        value="{{ old('garage_fee', $settings->garage_fee ?? '2.99') }}">
+                                </div>
+                                @error('garage_fee')
+                                    <span class="invalid-feedback d-block">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label">Product Spotlight Boost Fee ($)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="ri-flashlight-line"></i></span>
+                                    <input type="number" step="0.01" name="spotlight_fee"
+                                        class="form-control @error('spotlight_fee') is-invalid @enderror"
+                                        placeholder="2.99"
+                                        value="{{ old('spotlight_fee', $settings->spotlight_fee ?? '2.99') }}">
+                                </div>
+                                @error('spotlight_fee')
+                                    <span class="invalid-feedback d-block">{{ $message }}</span>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="col-12 mt-2 mb-4">
                 <div class="text-end">
                     <button type="submit" class="btn btn-primary btn-label waves-effect waves-light">

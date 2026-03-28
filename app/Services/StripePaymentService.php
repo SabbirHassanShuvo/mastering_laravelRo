@@ -2,9 +2,10 @@
 
 namespace App\Services;
 
-use Stripe\Stripe;
-use Stripe\PaymentIntent;
 use App\Models\GarageSale;
+use App\Models\Setting;
+use Stripe\PaymentIntent;
+use Stripe\Stripe;
 
 class StripePaymentService
 {
@@ -18,8 +19,11 @@ class StripePaymentService
     public function createPaymentIntent(array $metadata): array
     {
         try {
+            $settings = Setting::first();
+            $amount = ($settings->garage_fee ?? 2.99) * 100;
+
             $intent = PaymentIntent::create([
-                'amount'               => 299,  // $2.99 fixed for garage
+                'amount'               => (int) $amount,
                 'currency'             => 'usd',
                 'payment_method_types' => ['card'],
                 'metadata'             => $metadata,

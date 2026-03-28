@@ -221,7 +221,8 @@ class WebhookController extends Controller
                 'latitude'                 => $fullData['latitude'] ?: null,
                 'longitude'                => $fullData['longitude'] ?: null,
                 'expires_at'               => $fullData['expires_at'],
-                'total_fee'                => 2.99,
+                'posting_fee'              => $fullData['posting_fee'] ?? 2.99,
+                'total_fee'                => $fullData['total_fee'] ?? 2.99,
                 'status'                   => 'active',
                 'payment_status'           => 'completed',
                 'payment_completed_at'     => now(),
@@ -258,7 +259,8 @@ class WebhookController extends Controller
         }
 
         // 3. Backward compatibility (If someone sent metadata directly without payload_id)
-        if (isset($metadata->user_id)) {
+            if (isset($metadata->user_id)) {
+            $fee = (float) ($metadata->amount ?? 2.99); // Fallback amount if not present, though we don't have amount in old metadata, just default to 2.99 here
             $garage = GarageSale::create([
                 'user_id'                  => $metadata->user_id,
                 'event_title'              => $metadata->event_title ?? 'Garage Sale',
@@ -270,7 +272,8 @@ class WebhookController extends Controller
                 'latitude'                 => $metadata->latitude ?: null,
                 'longitude'                => $metadata->longitude ?: null,
                 'expires_at'               => $metadata->expires_at,
-                'total_fee'                => 2.99,
+                'posting_fee'              => 2.99, // Fallback default
+                'total_fee'                => 2.99, // Fallback default
                 'status'                   => 'active',
                 'payment_status'           => 'completed',
                 'payment_completed_at'     => now(),
@@ -330,6 +333,8 @@ class WebhookController extends Controller
                 'user_id'            => $metadata->user_id,
                 'product_id'         => $metadata->product_id,
                 'amount'             => $fee,
+                'posting_fee'        => $fee,
+                'total_fee'          => $fee,
                 'currency'           => 'usd',
                 'boost_plan'         => $metadata->boost_plan ?? 'weekend_boost',
                 'boost_hours'        => $boostHours,

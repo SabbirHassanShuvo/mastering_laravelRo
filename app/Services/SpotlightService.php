@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Product;
+use App\Models\Setting;
 use App\Models\SpotlightPayment;
 use App\Services\StripePaymentService;
 use Illuminate\Support\Facades\Log;
@@ -13,7 +14,8 @@ class SpotlightService
 
     public function getBoostFee(): float
     {
-        return 2.99; // Hardcoded, production e DB theke ante paren
+        $settings = Setting::first();
+        return (float) ($settings->spotlight_fee ?? 2.99);
     }
 
     // public function initiateSpotlight(int $userId, int $productId): array
@@ -128,6 +130,8 @@ class SpotlightService
             'product_id' => $productId,
             'stripe_payment_intent_id' => $intent['payment_intent_id'],
             'amount' => $fee,
+            'posting_fee' => $fee,
+            'total_fee' => $fee,
             'currency' => 'usd',
             'status' => 'pending',
             'boost_plan' => 'Weekend Boost',
