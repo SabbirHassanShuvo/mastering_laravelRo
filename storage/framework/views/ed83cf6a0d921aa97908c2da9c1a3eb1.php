@@ -13,6 +13,7 @@
     <?php echo $__env->yieldPushContent('styles-top'); ?>
     <?php echo $__env->make('backend.partials.style', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
     <?php echo $__env->yieldPushContent('styles-bottom'); ?>
+    <?php echo $__env->yieldPushContent('css'); ?>
 
 </head>
 

@@ -1,21 +1,21 @@
 <div class="row">
     <!-- Total Users -->
     <div class="col-xl-3 col-md-6">
-        <div class="card card-animate">
+        <div class="card card-animate bg-primary">
             <div class="card-body">
                 <div class="d-flex align-items-center">
                     <div class="flex-grow-1 overflow-hidden">
-                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0"> Total Users</p>
+                        <p class="text-uppercase fw-medium text-white-50 text-truncate mb-0"> Total Users</p>
                     </div>
                 </div>
                 <div class="d-flex align-items-end justify-content-between mt-4">
                     <div>
-                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="{{ $totalUsers }}">0</span></h4>
-                        <a href="{{ route('backend.system-user.index') }}" class="text-decoration-underline">View all users</a>
+                        <h4 class="fs-22 fw-semibold ff-secondary mb-4 text-white"><span class="counter-value" data-target="{{ $totalUsers }}">0</span></h4>
+                        <span class="text-white-50">{{ $verifiedUsers }} Verified</span>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-soft-primary rounded fs-3">
-                            <i class="bx bx-group text-primary"></i>
+                        <span class="avatar-title bg-white-50 rounded fs-3">
+                            <i class="bx bx-group text-white"></i>
                         </span>
                     </div>
                 </div>
@@ -23,23 +23,23 @@
         </div>
     </div>
 
-    <!-- Suspended Users -->
+    <!-- Total Revenue -->
     <div class="col-xl-3 col-md-6">
-        <div class="card card-animate">
+        <div class="card card-animate bg-success">
             <div class="card-body">
                 <div class="d-flex align-items-center">
                     <div class="flex-grow-1 overflow-hidden">
-                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0"> Suspended Users</p>
+                        <p class="text-uppercase fw-medium text-white-50 text-truncate mb-0"> Total Revenue</p>
                     </div>
                 </div>
                 <div class="d-flex align-items-end justify-content-between mt-4">
                     <div>
-                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="{{ $suspendedUsers }}">0</span></h4>
-                        <span class="text-muted">Currently suspended</span>
+                        <h4 class="fs-22 fw-semibold ff-secondary mb-4 text-white">$<span class="counter-value" data-target="{{ round($totalRevenue, 2) }}">0</span></h4>
+                        <span class="text-white-50">Combined Earnings</span>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-soft-danger rounded fs-3">
-                            <i class="bx bx-user-x text-danger"></i>
+                        <span class="avatar-title bg-white-50 rounded fs-3">
+                            <i class="bx bx-dollar-circle text-white"></i>
                         </span>
                     </div>
                 </div>
@@ -47,23 +47,23 @@
         </div>
     </div>
 
-    <!-- Total Products -->
+    <!-- Active Products -->
     <div class="col-xl-3 col-md-6">
-        <div class="card card-animate">
+        <div class="card card-animate bg-info">
             <div class="card-body">
                 <div class="d-flex align-items-center">
                     <div class="flex-grow-1 overflow-hidden">
-                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0"> Products</p>
+                        <p class="text-uppercase fw-medium text-white-50 text-truncate mb-0"> Active Products</p>
                     </div>
                 </div>
                 <div class="d-flex align-items-end justify-content-between mt-4">
                     <div>
-                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="{{ $totalProducts }}">0</span></h4>
-                        <span class="text-muted">Total active listings</span>
+                        <h4 class="fs-22 fw-semibold ff-secondary mb-4 text-white"><span class="counter-value" data-target="{{ $totalProducts }}">0</span></h4>
+                        <span class="text-white-50">{{ $spotlightedProducts }} Spotlighted</span>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-soft-info rounded fs-3">
-                            <i class="bx bx-package text-info"></i>
+                        <span class="avatar-title bg-white-50 rounded fs-3">
+                            <i class="bx bx-package text-white"></i>
                         </span>
                     </div>
                 </div>
@@ -71,23 +71,23 @@
         </div>
     </div>
 
-    <!-- Total Garage Sales -->
+    <!-- Garage Sales -->
     <div class="col-xl-3 col-md-6">
-        <div class="card card-animate">
+        <div class="card card-animate bg-warning">
             <div class="card-body">
                 <div class="d-flex align-items-center">
                     <div class="flex-grow-1 overflow-hidden">
-                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0"> Garage Sales</p>
+                        <p class="text-uppercase fw-medium text-white-50 text-truncate mb-0"> Garage Sales</p>
                     </div>
                 </div>
                 <div class="d-flex align-items-end justify-content-between mt-4">
                     <div>
-                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="{{ $totalGarageSales }}">0</span></h4>
-                        <span class="text-muted">Total garage events</span>
+                        <h4 class="fs-22 fw-semibold ff-secondary mb-4 text-white"><span class="counter-value" data-target="{{ $totalGarageSales }}">0</span></h4>
+                        <span class="text-white-50">Active Events</span>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-soft-success rounded fs-3">
-                            <i class="bx bx-store-alt text-success"></i>
+                        <span class="avatar-title bg-white-50 rounded fs-3">
+                            <i class="bx bx-store-alt text-white"></i>
                         </span>
                     </div>
                 </div>
@@ -97,43 +97,19 @@
 </div>
 
 <div class="row">
-    <!-- Spotlighted Products -->
+    <!-- Total Matches -->
     <div class="col-xl-3 col-md-6">
         <div class="card card-animate">
             <div class="card-body">
                 <div class="d-flex align-items-center">
                     <div class="flex-grow-1 overflow-hidden">
-                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0"> Spotlighted Products</p>
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0"> Total Matches</p>
                     </div>
                 </div>
                 <div class="d-flex align-items-end justify-content-between mt-4">
                     <div>
-                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="{{ $spotlightedProducts }}">0</span></h4>
-                        <span class="text-muted">Boosted listings</span>
-                    </div>
-                    <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-soft-warning rounded fs-3">
-                            <i class="bx bx-star text-warning"></i>
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Total Matches & Pickups -->
-    <div class="col-xl-3 col-md-6">
-        <div class="card card-animate">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1 overflow-hidden">
-                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0"> Matches & Pickups</p>
-                    </div>
-                </div>
-                <div class="d-flex align-items-end justify-content-between mt-4">
-                    <div>
-                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="{{ $totalMatches }}">0</span> <small class="text-muted fs-13">Matches</small></h4>
-                        <span class="text-muted">{{ $totalPickups }} Pickups ({{ $completedPickups }} Completed)</span>
+                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="{{ $totalMatches }}">0</span></h4>
+                        <span class="text-muted">User connections</span>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
                         <span class="avatar-title bg-soft-primary rounded fs-3">
@@ -145,7 +121,55 @@
         </div>
     </div>
 
-    <!-- Total Reports -->
+    <!-- Completed Pickups -->
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1 overflow-hidden">
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0"> Match Conversion</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-end justify-content-between mt-4">
+                    <div>
+                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="{{ $matchConversionRate }}">0</span>%</h4>
+                        <span class="text-muted">{{ $completedPickups }} Completed Pickups</span>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-soft-success rounded fs-3">
+                            <i class="bx bx-check-double text-success"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Messages -->
+    <div class="col-xl-3 col-md-6">
+        <div class="card card-animate">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1 overflow-hidden">
+                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0"> Total Messages</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-end justify-content-between mt-4">
+                    <div>
+                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="{{ $totalMessages }}">0</span></h4>
+                        <span class="text-muted">Chat interactions</span>
+                    </div>
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-soft-info rounded fs-3">
+                            <i class="bx bx-message-square-dots text-info"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reports -->
     <div class="col-xl-3 col-md-6">
         <div class="card card-animate">
             <div class="card-body">
@@ -157,40 +181,11 @@
                 <div class="d-flex align-items-end justify-content-between mt-4">
                     <div>
                         <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="{{ $totalReports }}">0</span></h4>
-                        <span class="text-muted">User submitted reports</span>
+                        <span class="text-muted">Needs Attention</span>
                     </div>
                     <div class="avatar-sm flex-shrink-0">
                         <span class="avatar-title bg-soft-danger rounded fs-3">
                             <i class="bx bx-error text-danger"></i>
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Total Revenue -->
-    <div class="col-xl-3 col-md-6">
-        <div class="card card-animate">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1 overflow-hidden">
-                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0"> Total Revenue</p>
-                    </div>
-                    <div class="flex-shrink-0">
-                        <h5 class="text-success fs-14 mb-0">
-                            <i class="ri-arrow-right-up-line fs-13 align-middle"></i> YTD
-                        </h5>
-                    </div>
-                </div>
-                <div class="d-flex align-items-end justify-content-between mt-4">
-                    <div>
-                        <h4 class="fs-22 fw-semibold ff-secondary mb-4">$<span class="counter-value" data-target="{{ round($totalRevenue, 2) }}">0</span></h4>
-                        <span class="text-muted">Platform earnings</span>
-                    </div>
-                    <div class="avatar-sm flex-shrink-0">
-                        <span class="avatar-title bg-soft-success rounded fs-3">
-                            <i class="bx bx-dollar-circle text-success"></i>
                         </span>
                     </div>
                 </div>

@@ -13,6 +13,7 @@
     @stack('styles-top')
     @include('backend.partials.style')
     @stack('styles-bottom')
+    @stack('css')
 
 </head>
 
