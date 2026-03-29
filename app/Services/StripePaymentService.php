@@ -52,7 +52,7 @@ class StripePaymentService
     {
         try {
             $intent = \Stripe\PaymentIntent::create([
-                'amount' => $amount * 100,
+                'amount' => (int) round($amount * 100),
                 'currency' => 'usd',
                 'metadata' => $metadata,
                 'payment_method_types' => ['card'],

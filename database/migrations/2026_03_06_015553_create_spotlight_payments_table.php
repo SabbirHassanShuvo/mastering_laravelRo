@@ -17,7 +17,8 @@ return new class extends Migration
             $table->foreignId('product_id')->constrained()->onDelete('cascade');
             $table->string('stripe_payment_intent_id')->unique();
             $table->string('stripe_payment_method_id')->nullable();
-            $table->decimal('amount', 8, 2);
+            $table->decimal('posting_fee', 8, 2)->default(0);
+            $table->decimal('total_fee', 8, 2)->default(0);
             $table->string('currency', 3)->default('usd');
             $table->string('boost_plan');
             $table->integer('boost_hours')->default(48);

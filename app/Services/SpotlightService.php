@@ -112,7 +112,8 @@ class SpotlightService
             'product_id' => $productId,
             'boost_hours' => 48,
             'boost_plan' => 'weekend_boost',
-            'amount'     => $fee,
+            'posting_fee'     => $fee,
+            'total_fee'     => $fee,
         ];
 
         $intent = $this->stripe->createSpotlightPaymentIntent($metadata, $fee);
@@ -129,7 +130,6 @@ class SpotlightService
             'user_id' => $userId,
             'product_id' => $productId,
             'stripe_payment_intent_id' => $intent['payment_intent_id'],
-            'amount' => $fee,
             'posting_fee' => $fee,
             'total_fee' => $fee,
             'currency' => 'usd',

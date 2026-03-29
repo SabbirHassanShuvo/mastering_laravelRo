@@ -324,7 +324,7 @@ class WebhookController extends Controller
         $boostHours = (int) ($metadata->boost_hours ?? 48);
         $startAt    = now();
         $endAt      = now()->addHours($boostHours);
-        $fee        = (float) ($metadata->amount ?? 2.99);
+        $fee        = (float) ($metadata->posting_fee ?? 2.99);
 
         // Update existing pending record → paid, OR create new if none exists
         SpotlightPayment::updateOrCreate(
@@ -332,7 +332,6 @@ class WebhookController extends Controller
             [
                 'user_id'            => $metadata->user_id,
                 'product_id'         => $metadata->product_id,
-                'amount'             => $fee,
                 'posting_fee'        => $fee,
                 'total_fee'          => $fee,
                 'currency'           => 'usd',
