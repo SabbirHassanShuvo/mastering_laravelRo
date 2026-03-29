@@ -18,7 +18,7 @@ class SpotlightPaymentsController extends Controller
     {
         // 1️⃣ Stat Cards
         $stats = [
-            'total_revenue'  => SpotlightPayment::successful()->sum('amount'),
+            'total_revenue'  => SpotlightPayment::successful()->sum('total_fee'),
             'active_boosts'  => SpotlightPayment::active()->count(),
             'pending_count'  => SpotlightPayment::pending()->count(),
             'failed_count'   => SpotlightPayment::where('spotlight_payments.status', 'failed')->count(),
@@ -27,7 +27,7 @@ class SpotlightPaymentsController extends Controller
         // 2️⃣ Top Boosted Products (By revenue & count)
         $topProducts = SpotlightPayment::successful()
             ->with('product')
-            ->selectRaw('spotlight_payments.product_id, SUM(spotlight_payments.amount) as total_spent, COUNT(*) as boost_count')
+            ->selectRaw('spotlight_payments.product_id, SUM(spotlight_payments.total_fee) as total_spent, COUNT(*) as boost_count')
             ->groupBy('product_id')
             ->orderByDesc('total_spent')
             ->limit(5)
@@ -35,14 +35,14 @@ class SpotlightPaymentsController extends Controller
 
         // 3️⃣ City-based Revenue (Parsing city from pickup_location)
         // Note: This assumes pickup_location is "City, Region, etc."
-        $totalRevenueOverall = SpotlightPayment::successful()->sum('amount');
+        $totalRevenueOverall = SpotlightPayment::successful()->sum('total_fee');
 
         $cityRevenue = Product::selectRaw('
                 CASE 
                     WHEN products.pickup_location IS NULL OR TRIM(products.pickup_location) = "" THEN "Unknown"
                     ELSE TRIM(SUBSTRING_INDEX(products.pickup_location, ",", 1))
                 END as city, 
-                SUM(COALESCE(spotlight_payments.amount, 0)) as revenue,
+                SUM(COALESCE(spotlight_payments.total_fee, 0)) as revenue,
                 COUNT(spotlight_payments.id) as boost_count,
                 COUNT(DISTINCT products.id) as total_products
             ')
@@ -81,7 +81,7 @@ class SpotlightPaymentsController extends Controller
                     return $payment->product ? $payment->product->title : 'N/A';
                 })
                 ->addColumn('formatted_amount', function ($payment) {
-                    return '$' . number_format($payment->amount, 2);
+                    return '$' . number_format($payment->total_fee, 2);
                 })
                 ->addColumn('status_badge', function ($payment) {
                     $colors = [
@@ -118,7 +118,7 @@ class SpotlightPaymentsController extends Controller
      */
     public function cityAnalytics()
     {
-        $totalRevenueOverall = SpotlightPayment::successful()->sum('amount');
+        $totalRevenueOverall = SpotlightPayment::successful()->sum('total_fee');
         
         $cityExpression = 'CASE 
                     WHEN products.pickup_location IS NULL OR TRIM(products.pickup_location) = "" THEN "Unknown"
@@ -127,7 +127,7 @@ class SpotlightPaymentsController extends Controller
 
         $cityRevenue = Product::selectRaw("
                 $cityExpression as city, 
-                SUM(COALESCE(spotlight_payments.amount, 0)) as revenue,
+                SUM(COALESCE(spotlight_payments.total_fee, 0)) as revenue,
                 COUNT(spotlight_payments.id) as boost_count,
                 COUNT(DISTINCT products.id) as total_products,
                 COUNT(DISTINCT CASE WHEN spotlight_payments.status = 'paid' THEN products.id END) as boosted_products_count,
@@ -172,7 +172,7 @@ class SpotlightPaymentsController extends Controller
         return response()->json([
             'success' => true,
             'data'    => $payment,
-            'formatted_amount' => '$' . number_format($payment->amount, 2),
+            'formatted_amount' => '$' . number_format($payment->total_fee, 2),
             'user_name'        => $payment->user->name ?? 'N/A',
             'product_title'    => $payment->product->title ?? 'N/A',
             'dates'            => [
@@ -213,7 +213,7 @@ class SpotlightPaymentsController extends Controller
                         $payment->product_id,
                         $payment->boost_plan,
                         strtoupper($payment->currency),
-                        $payment->amount,
+                        $payment->total_fee,
                         ucfirst($payment->status),
                         $payment->spotlight_start_at ? $payment->spotlight_start_at->format('Y-m-d') : 'N/A',
                         $payment->spotlight_end_at ? $payment->spotlight_end_at->format('Y-m-d') : 'N/A',
@@ -258,7 +258,7 @@ class SpotlightPaymentsController extends Controller
             $html .= '<td>' . $payment->product_id . '</td>';
             $html .= '<td>' . htmlspecialchars($payment->boost_plan) . '</td>';
             $html .= '<td>' . strtoupper($payment->currency) . '</td>';
-            $html .= '<td>' . $payment->amount . '</td>';
+            $html .= '<td>' . $payment->total_fee . '</td>';
             $html .= '<td>' . ucfirst($payment->status) . '</td>';
             $html .= '<td>' . ($payment->spotlight_start_at ? $payment->spotlight_start_at->format('Y-m-d') : 'N/A') . '</td>';
             $html .= '<td>' . ($payment->spotlight_end_at ? $payment->spotlight_end_at->format('Y-m-d') : 'N/A') . '</td>';

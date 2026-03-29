@@ -345,7 +345,7 @@
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
                 { data: 'user', name: 'user' },
                 { data: 'product', name: 'product' },
-                { data: 'formatted_amount', name: 'amount' },
+                { data: 'formatted_amount', name: 'total_fee' },
                 { data: 'status_badge', name: 'status' },
                 { data: 'period', name: 'period', orderable: false },
                 { data: 'created_at', name: 'created_at' },

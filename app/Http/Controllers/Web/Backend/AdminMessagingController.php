@@ -89,6 +89,10 @@ class AdminMessagingController extends Controller
             ->orderByDesc('created_at')
             ->paginate(20);
 
-        return view('backend.messaging.pickups', compact('pickups'));
+        $pickupStatusCounts = Pickup::select('status', DB::raw('count(*) as count'))
+            ->groupBy('status')
+            ->pluck('count', 'status');
+
+        return view('backend.messaging.pickups', compact('pickups', 'pickupStatusCounts'));
     }
 }

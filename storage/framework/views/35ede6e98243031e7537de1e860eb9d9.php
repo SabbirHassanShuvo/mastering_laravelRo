@@ -40,4 +40,8 @@
             color: #fff !important;
             font-weight: 500;
         }
+        .pagination svg {
+            width: 1.5rem;
+            height: 1.5rem;
+        }
     </style><?php /**PATH C:\Users\88013\Herd\mastering_laravelRo\resources\views/backend/partials/style.blade.php ENDPATH**/ ?>

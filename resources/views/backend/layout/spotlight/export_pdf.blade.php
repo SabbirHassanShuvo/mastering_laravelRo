@@ -41,8 +41,8 @@
                     <small style="color: #888;">{{ $payment->user->email ?? '' }}</small>
                 </td>
                 <td>{{ $payment->product->title ?? 'N/A' }}</td>
-                <td><small>{{ $payment->stripe_payment_intent_id }}</small></td>
-                <td><strong>${{ number_format($payment->amount, 2) }}</strong></td>
+                <td>{{ strtoupper($payment->currency) }}</td>
+                <td><strong>${{ number_format($payment->total_fee, 2) }}</strong></td>
                 <td class="status-{{ $payment->status }}">{{ ucfirst($payment->status) }}</td>
             </tr>
             @endforeach

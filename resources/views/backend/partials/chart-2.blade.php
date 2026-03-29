@@ -3,11 +3,6 @@
         <div class="card card-height-100 card-animate">
             <div class="card-header align-items-center d-flex">
                 <h4 class="card-title mb-0 flex-grow-1">Top Spotlighted Cities</h4>
-                <div class="flex-shrink-0">
-                    <button type="button" class="btn btn-soft-primary btn-sm">
-                        Export Report
-                    </button>
-                </div>
             </div><!-- end card header -->
 
             <div class="card-body">
@@ -25,7 +20,7 @@
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <div class="avatar-sm bg-light rounded p-1 me-2">
-                                            <div class="avatar-title bg-soft-warning text-warning roundedfs-13">
+                                            <div class="avatar-title bg-soft-warning text-warning rounded fs-13">
                                                 <i class="bx bxs-star"></i>
                                             </div>
                                         </div>

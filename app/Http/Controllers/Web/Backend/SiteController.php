@@ -23,8 +23,9 @@ class SiteController extends Controller
         $data['suspendedUsers'] = User::whereNotNull('suspended_at')->count();
         $data['totalProducts'] = Product::count();
         $data['totalGarageSales'] = GarageSale::count();
-        $data['spotlightedProducts'] = Product::where('is_spotlighted', true)
-                                              ->orWhere('boost_count', '>', 0)->count();
+        $data['spotlightedProducts'] = SpotlightPayment::where('status', 'paid')
+                                              ->distinct('product_id')
+                                              ->count('product_id');
                                               
         $data['totalMatches'] = DB::table('matches')->count();
         $data['totalPickups'] = Pickup::count();
@@ -32,8 +33,8 @@ class SiteController extends Controller
         $data['totalReports'] = Report::count();
 
         // Revenue (Spotlight + Garage Sales)
-        $spotlightRevenue = SpotlightPayment::where('status', 'paid')->sum('amount');
-        $garageRevenue = GarageSale::where('payment_status', 'completed')->sum('posting_fee'); // assuming posting_fee or total_fee
+        $spotlightRevenue = SpotlightPayment::where('status', 'paid')->sum('total_fee');
+        $garageRevenue = GarageSale::where('payment_status', 'completed')->sum('total_fee');
         $data['totalRevenue'] = $spotlightRevenue + $garageRevenue;
         
         // Charts Data: Orders (Spotlights/Garage Sales) and Earnings by Month for current year
@@ -53,10 +54,10 @@ class SiteController extends Controller
                 
             $spotlightRev = SpotlightPayment::where('status', 'paid')
                 ->whereYear('created_at', $currentYear)
-                ->whereMonth('created_at', $i)->sum('amount');
+                ->whereMonth('created_at', $i)->sum('total_fee');
             $garageSaleRev = GarageSale::where('payment_status', 'completed')
                 ->whereYear('created_at', $currentYear)
-                ->whereMonth('created_at', $i)->sum('posting_fee');
+                ->whereMonth('created_at', $i)->sum('total_fee');
                 
             $orders[] = $spotlightCount + $garageSaleCount;
             $earnings[] = $spotlightRev + $garageSaleRev;
@@ -68,24 +69,40 @@ class SiteController extends Controller
         $data['months'] = $months;
         $data['refunds'] = array_fill(0, 12, 0); // Placeholder for refunds
         
-        // Location-based Stats
-        $data['topGarageCities'] = GarageSale::select('pickup_location', DB::raw('count(*) as total'))
+        $cityExpression = 'CASE 
+                    WHEN pickup_location IS NULL OR TRIM(pickup_location) = "" THEN "Unknown"
+                    ELSE TRIM(SUBSTRING_INDEX(pickup_location, ",", 1))
+                END';
+
+        $data['topGarageCities'] = GarageSale::selectRaw("$cityExpression as city_name, count(*) as total")
             ->whereNotNull('pickup_location')
-            ->groupBy('pickup_location')
+            ->where('pickup_location', '!=', '')
+            ->groupByRaw($cityExpression)
             ->orderByDesc('total')
             ->limit(5)
-            ->get();
+            ->get()
+            ->map(function($item) {
+                // Ensure field matches the expected view field properly
+                $item->pickup_location = $item->city_name;
+                return $item;
+            });
             
-        $data['topSpotlightCities'] = Product::where(function($q) {
-                $q->where('is_spotlighted', true)
-                  ->orWhere('boost_count', '>', 0);
+        $data['topSpotlightCities'] = Product::selectRaw("$cityExpression as city_name, count(*) as total")
+            ->whereIn('id', function ($query) {
+                $query->select('product_id')
+                      ->from('spotlight_payments')
+                      ->where('status', 'paid');
             })
-            ->select('pickup_location', DB::raw('count(*) as total'))
             ->whereNotNull('pickup_location')
-            ->groupBy('pickup_location')
+            ->where('pickup_location', '!=', '')
+            ->groupByRaw($cityExpression)
             ->orderByDesc('total')
             ->limit(5)
-            ->get();
+            ->get()
+            ->map(function($item) {
+                $item->pickup_location = $item->city_name;
+                return $item;
+            });
 
         return view("backend.index", $data);
     }

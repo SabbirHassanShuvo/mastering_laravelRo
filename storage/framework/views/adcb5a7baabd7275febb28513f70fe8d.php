@@ -47,9 +47,8 @@
                                                 </div>
                                             </div>
                                         </div> -->
-                                        <!--end col-->
                                         <div class="col-auto">
-                                            <button type="button" class="btn btn-soft-success"><i class="ri-add-circle-line align-middle me-1"></i> Add Product</button>
+                                            <a href="<?php echo e(route('backend.products.create')); ?>" class="btn btn-soft-success"><i class="ri-add-circle-line align-middle me-1"></i> Add Product</a>
                                         </div>
                                         <!--end col-->
                                         <!-- <div class="col-auto">
@@ -100,13 +99,20 @@
 <?php $__env->startPush('scripts-bottom'); ?>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // Sample full dataset (you would get this from your backend)
         const fullDataset = {
             orders: <?php echo json_encode($orders, 15, 512) ?>,
             earnings: <?php echo json_encode($earnings, 15, 512) ?>,
             refunds: <?php echo json_encode($refunds, 15, 512) ?>,
             months: <?php echo json_encode($months, 15, 512) ?>
         };
+
+        if (fullDataset.months && fullDataset.months.length > 0) {
+            fullDataset.dates = [];
+            let currentYear = new Date().getFullYear();
+            fullDataset.months.forEach((month) => {
+                fullDataset.dates.push(new Date(`${month} 1, ${currentYear}`));
+            });
+        }
 
         // Generate larger sample data for demonstration
         const generateSampleData = () => {
@@ -154,7 +160,7 @@
                 dataLabels: { enabled: false },
                 stroke: { curve: 'smooth', width: 2 },
                 series: [
-                    { name: "Orders", data: [] },
+                    { name: "Posts", data: [] },
                     { name: "Earnings", data: [] },
                     { name: "Refunds", data: [] }
                 ],
@@ -181,7 +187,7 @@
                     dashArray: [0, 0, 5]
                 },
                 series: [
-                    { name: "Orders", type: "column", data: [] },
+                    { name: "Posts", type: "column", data: [] },
                     { name: "Earnings", type: "area", data: [] },
                     { name: "Refunds", type: "area", data: [] }
                 ],
