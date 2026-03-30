@@ -13,7 +13,7 @@ class MailController extends Controller
     }
 
     public function update(Request $request) {
-        $request->validate([
+        $data = $request->validate([
             'mail_mailer'       => 'nullable|string',
             'mail_host'         => 'nullable|string',
             'mail_port'         => 'nullable|string',
@@ -24,31 +24,37 @@ class MailController extends Controller
         ]);
 
         try {
-            $envContent = File::get(base_path('.env'));
-            $lineBreak  = "\n";
-            $envContent = preg_replace([
-                '/MAIL_MAILER=(.*)\s*/',
-                '/MAIL_HOST=(.*)\s*/',
-                '/MAIL_PORT=(.*)\s*/',
-                '/MAIL_USERNAME=(.*)\s*/',
-                '/MAIL_PASSWORD=(.*)\s*/',
-                '/MAIL_ENCRYPTION=(.*)\s*/',
-                '/MAIL_FROM_ADDRESS=(.*)\s*/',
-            ], [
-                'MAIL_MAILER=' . $request->mail_mailer . $lineBreak,
-                'MAIL_HOST=' . $request->mail_host . $lineBreak,
-                'MAIL_PORT=' . $request->mail_port . $lineBreak,
-                'MAIL_USERNAME=' . $request->mail_username . $lineBreak,
-                'MAIL_PASSWORD=' . $request->mail_password . $lineBreak,
-                'MAIL_ENCRYPTION=' . $request->mail_encryption . $lineBreak,
-                'MAIL_FROM_ADDRESS=' . '"' . $request->mail_from_address . '"' . $lineBreak,
-            ], $envContent);
-
-            File::put(base_path('.env'), $envContent);
+            $this->updateEnv([
+                'MAIL_MAILER'       => $data['mail_mailer'],
+                'MAIL_HOST'         => $data['mail_host'],
+                'MAIL_PORT'         => $data['mail_port'],
+                'MAIL_USERNAME'     => $data['mail_username'],
+                'MAIL_PASSWORD'     => $data['mail_password'],
+                'MAIL_ENCRYPTION'   => $data['mail_encryption'],
+                'MAIL_FROM_ADDRESS' => '"' . $data['mail_from_address'] . '"',
+            ]);
 
             return back()->with('success', 'Updated successfully');
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to update ... '.$e->getMessage());
+            return back()->with('error', 'Failed to update ... ' . $e->getMessage());
+        }
+    }
+
+    private function updateEnv(array $data) {
+        $envPath = base_path('.env');
+        if (File::exists($envPath)) {
+            $content = File::get($envPath);
+
+            foreach ($data as $key => $value) {
+                // Ensure key exists (not commented out), if not append it
+                if (preg_match("/^$key=/m", $content)) {
+                    $content = preg_replace("/^$key=.*$/m", "$key=$value", $content);
+                } else {
+                    $content .= "\n$key=$value";
+                }
+            }
+
+            File::put($envPath, $content);
         }
     }
 }

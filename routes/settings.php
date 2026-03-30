@@ -24,9 +24,11 @@ Route::group(["prefix"=> "settings", "as"=> "settings."], function () {
         Route::put('update', 'update')->name('update');
     });
 
-    Route::controller(StripeSettingsController::class)->prefix('payments/')->name('payments.stripe.')->group(function(){
-        Route::get('', 'index')->name('index');
-        Route::put('update', 'update')->name('update');
-        Route::put('test', 'test')->name('test');
+    Route::controller(StripeSettingsController::class)->prefix('payments/')->name('payments.')->group(function(){
+        Route::get('', 'index')->name('stripe.index');
+        Route::put('update', 'update')->name('stripe.update');
+        Route::put('sslcommerz/update', 'updateSSL')->name('sslcommerz.update');
+        Route::put('general/update', 'updateGeneral')->name('general.update');
+        Route::put('test', 'test')->name('stripe.test');
     });
 });
