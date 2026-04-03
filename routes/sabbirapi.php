@@ -137,6 +137,9 @@ Route::group(['middleware' => 'auth:api','prefix' => 'chat'], function ($router)
 
     // ── Reports ───────────────────────────────────────────────────
     Route::post('reports', [ReportController::class, 'store']);
+
+    // ── Call Logs ───────────────────────────────────────────────────
+    Route::post('calls/log', [MessageController::class, 'logCall']);
 });
 Broadcast::routes([
     'middleware' => ['auth:api'],

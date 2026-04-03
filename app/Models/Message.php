@@ -16,6 +16,11 @@ class Message extends Model
         'file_path',
         'file_type',
         'is_read',
+        'type',
+        'call_type',
+        'call_status',
+        'call_duration',
+        'receiver_id',
     ];
 
     protected $casts = [
@@ -32,6 +37,11 @@ class Message extends Model
     public function sender(): BelongsTo
     {
         return $this->belongsTo(User::class, 'sender_id');
+    }
+
+    public function receiver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'receiver_id');
     }
 
     // ─── Accessor: full public URL for file ───────────────────

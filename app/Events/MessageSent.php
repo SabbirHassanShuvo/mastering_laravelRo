@@ -59,6 +59,11 @@ class MessageSent implements ShouldBroadcastNow
             'file_url'        => $this->message->file_url,
             'file_type'       => $this->message->file_type,
             'is_read'         => $this->message->is_read,
+            'type'            => $this->message->type,
+            'call_type'       => $this->message->call_type,
+            'call_status'     => $this->message->call_status,
+            'call_duration'   => $this->message->call_duration,
+            'receiver_id'     => $this->message->receiver_id,
             'created_at'      => $this->message->created_at->toISOString(),
         ];
     }

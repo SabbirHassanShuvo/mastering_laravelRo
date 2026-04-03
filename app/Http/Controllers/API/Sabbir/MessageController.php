@@ -96,6 +96,7 @@ class MessageController extends Controller
             'status' => true,
             'data'   => [
                 'id'              => $message->id,
+                'type'            => $message->type,
                 'conversation_id' => $message->conversation_id,
                 'sender_id'       => $message->sender_id,
                 'sender_name'     => $message->sender->name,
@@ -138,7 +139,7 @@ class MessageController extends Controller
             ->get()
             ->map(fn($m) => [
                 'id'            => $m->id,
-                'type'          => 'message',
+                'type'          => $m->type,
                 'sender_id'     => $m->sender_id,
                 'sender_name'   => $m->sender->name,
                 'sender_avatar' => optional($m->sender->profile)->avatar,
@@ -146,6 +147,10 @@ class MessageController extends Controller
                 'file_url'      => $m->file_url,
                 'file_type'     => $m->file_type,
                 'is_read'       => $m->is_read,
+                'call_type'     => $m->call_type,
+                'call_status'   => $m->call_status,
+                'call_duration' => $m->call_duration,
+                'receiver_id'   => $m->receiver_id,
                 'created_at'    => $m->created_at->toIso8601String(),
             ]);
 
@@ -203,5 +208,75 @@ class MessageController extends Controller
         $combined = $messages->concat($pickups)->concat($shares)->sortBy('created_at')->values();
 
         return response()->json(['status' => true, 'data' => $combined]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // POST /api/chat/calls/log
+    // Store a new call log as a message
+    // ─────────────────────────────────────────────────────────────────
+    public function logCall(Request $request): JsonResponse
+    {
+        $request->validate([
+            'conversation_id' => 'required|exists:conversations,id',
+            'receiver_id'     => 'required|exists:users,id',
+            'call_type'       => 'required|in:audio,video',
+            'call_status'     => 'required|in:completed,missed,declined,cancelled',
+            'call_duration'   => 'nullable|integer',
+        ]);
+
+        $conversation = Conversation::findOrFail($request->conversation_id);
+
+        if (!$conversation->hasUser(auth()->id())) {
+            return response()->json(['status' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
+        // Generate descriptive message text
+        $typeLabel = ucfirst($request->call_type);
+        $statusLabel = ucfirst($request->call_status);
+        
+        if ($request->call_status === 'completed' && $request->call_duration > 0) {
+            $minutes = floor($request->call_duration / 60);
+            $seconds = $request->call_duration % 60;
+            $durationStr = $minutes > 0 ? "{$minutes}m {$seconds}s" : "{$seconds}s";
+            $messageText = "{$typeLabel} Call ({$durationStr})";
+        } else {
+            $messageText = "{$statusLabel} {$typeLabel} Call";
+        }
+
+        $message = Message::create([
+            'conversation_id' => $request->conversation_id,
+            'sender_id'       => auth()->id(),
+            'receiver_id'     => $request->receiver_id,
+            'message_text'    => $messageText,
+            'type'            => 'call_log',
+            'call_type'       => $request->call_type,
+            'call_status'     => $request->call_status,
+            'call_duration'   => $request->call_duration,
+            'is_read'         => false,
+        ]);
+
+        $message->load(['sender.profile']);
+        $conversation->touch();
+
+        // BROADCAST → notify receiver in real-time
+        broadcast(new MessageSent($message))->toOthers();
+
+        return response()->json([
+            'status' => true,
+            'data'   => [
+                'id'              => $message->id,
+                'type'            => $message->type,
+                'conversation_id' => $message->conversation_id,
+                'sender_id'       => $message->sender_id,
+                'sender_name'     => $message->sender->name,
+                'message_text'    => $message->message_text,
+                'call_type'       => $message->call_type,
+                'call_status'     => $message->call_status,
+                'call_duration'   => $message->call_duration,
+                'receiver_id'     => $message->receiver_id,
+                'is_read'         => $message->is_read,
+                'created_at'      => $message->created_at->toISOString(),
+            ],
+        ], 201);
     }
 }
