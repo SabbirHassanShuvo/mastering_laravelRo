@@ -84,7 +84,7 @@ class ProductsController extends Controller
         $product->pickup_longitude = $validated['pickup_longitude'] ?? null;
         $product->pickup_notes = $validated['pickup_notes'] ?? null;
         $product->status = Product::STATUS_ACTIVE;
-        $product->posted_at = now();
+        $product->posted_at = \Illuminate\Support\Carbon::now();
         $product->expires_at = $expiresAt;
 
         $product->is_urgent = $validated['is_urgent'] ?? false;
@@ -92,7 +92,7 @@ class ProductsController extends Controller
         $product->urgent_pickup_notes = $request->input('urgent_pickup_notes');
 
         if ($request->hasFile('product_image')) {
-            $product->product_image = $request->file('product_image')->store('products', 'public');
+            $product->product_image = $request->file('product_image')->store('products/main', 'public');
         }
 
         $product->save();
@@ -176,7 +176,7 @@ class ProductsController extends Controller
             if ($product->product_image && Storage::disk('public')->exists($product->product_image)) {
                 Storage::disk('public')->delete($product->product_image);
             }
-            $product->product_image = $request->file('product_image')->store('products', 'public');
+            $product->product_image = $request->file('product_image')->store('products/main', 'public');
         }
 
         // Multiple photos replacement

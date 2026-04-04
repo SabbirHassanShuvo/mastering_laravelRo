@@ -27,10 +27,18 @@ class Product extends Model
         'product_type',
         'price',
         'description',
+        'pickup_location',
         'pickup_latitude',
         'pickup_longitude',
         'status',
-        'sold_at'
+        'sold_at',
+        'product_image',
+        'condition_status',
+        'is_urgent',
+        'urgent_pickup_date',
+        'urgent_pickup_notes',
+        'posted_at',
+        'expires_at'
     ];
 
     protected $guarded = ['id'];
@@ -93,9 +101,12 @@ class Product extends Model
 
     public function getProductImageAttribute($value)
     {
-        if ($value && !filter_var($value, FILTER_VALIDATE_URL)) {
-            return Storage::disk('public')->url($value);
+        if ($value) {
+            if (filter_var($value, FILTER_VALIDATE_URL)) {
+                return $value;
+            }
+            return asset('storage/' . ltrim($value, '/'));
         }
-        return $value;
+        return null;
     }
 }

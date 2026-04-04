@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Storage;
 
 class ProductPhoto extends Model
 {
+    protected $fillable = ['product_id', 'photo_url', 'uploaded_at'];
     protected $guarded = ['id'];
 
     // Photo belongs to Product
@@ -18,9 +19,12 @@ class ProductPhoto extends Model
 
     public function getPhotoUrlAttribute($value)
     {
-        if ($value && !filter_var($value, FILTER_VALIDATE_URL)) {
-            return Storage::disk('public')->url($value);
+        if ($value) {
+            if (filter_var($value, FILTER_VALIDATE_URL)) {
+                return $value;
+            }
+            return asset('storage/' . ltrim($value, '/'));
         }
-        return $value;
+        return null;
     }
 }

@@ -655,7 +655,7 @@
                                 let slides = '';
                                 if (item.images && item.images.length > 0) {
                                     item.images.forEach(img => {
-                                        let imgUrl = "{{ asset('storage') }}/" + img.photo;
+                                        let imgUrl = img.photo;
                                         slides += `<div class="swiper-slide"><img src="${imgUrl}" class="rounded border" style="width:100%; height:280px; object-fit:contain; background:#f9f9f9;"></div>`;
                                     });
                                 } else {

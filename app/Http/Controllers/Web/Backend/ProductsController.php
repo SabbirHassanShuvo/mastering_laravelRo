@@ -9,6 +9,7 @@ use App\Models\ProductPhoto;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Yajra\DataTables\Facades\DataTables;
 
 class ProductsController extends Controller
@@ -70,7 +71,7 @@ class ProductsController extends Controller
                 ->addColumn('image', function (Product $product) {
 
                     $src = $product->product_image
-                        ? asset('storage/' . $product->product_image)
+                        ? $product->product_image
                         : asset('assets/images/no-image.png');
 
                     return '<img src="' . $src . '" 
@@ -247,9 +248,9 @@ class ProductsController extends Controller
                 'owner_name'      => $product->user->name ?? 'N/A',
                 'posted_date'     => $product->posted_at ? $product->posted_at->format('d M Y, h:i A') : 'N/A',
                 'expires_date'    => $product->expires_at ? $product->expires_at->format('d M Y') : 'N/A',
-                'image_path'      => $product->product_image ? asset('storage/' . $product->product_image) : asset('assets/images/no-image.png'),
+                'image_path'      => $product->product_image ?: asset('assets/images/no-image.png'),
                 'gallery'         => $product->photos->map(function ($p) {
-                    return asset('storage/' . $p->photo_url);
+                    return $p->photo_url;
                 }),
                 'is_urgent'       => (bool)$product->is_urgent,
                 'is_spotlighted'  => (bool)$product->is_spotlighted,
@@ -285,13 +286,16 @@ class ProductsController extends Controller
      */
     public function destroy(Product $product)
     {
-        // Delete storage images
-        if ($product->product_image && file_exists(public_path($product->product_image))) {
-            @unlink(public_path($product->product_image));
+        // Delete storage images using raw paths
+        $mainImage = $product->getRawOriginal('product_image');
+        if ($mainImage && Storage::disk('public')->exists($mainImage)) {
+            Storage::disk('public')->delete($mainImage);
         }
+
         foreach ($product->photos as $photo) {
-            if (file_exists(public_path($photo->photo_url))) {
-                @unlink(public_path($photo->photo_url));
+            $photoPath = $photo->getRawOriginal('photo_url');
+            if ($photoPath && Storage::disk('public')->exists($photoPath)) {
+                Storage::disk('public')->delete($photoPath);
             }
         }
 

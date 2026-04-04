@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\GarageItem;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class GarageItemImage extends Model
 {
@@ -12,19 +13,15 @@ class GarageItemImage extends Model
 
     protected $fillable = ['garage_item_id','photo'];
 
-    protected $appends = ['photo'];
-
     public function getPhotoAttribute($value)
     {
-        if (!$value) {
-            return null;
+        if ($value) {
+            if (filter_var($value, FILTER_VALIDATE_URL)) {
+                return $value;
+            }
+            return asset('storage/' . ltrim($value, '/'));
         }
-
-        if (filter_var($value, FILTER_VALIDATE_URL)) {
-            return $value;
-        }
-
-        return asset('storage/' . $value);
+        return null;
     }
 
     public function item() {

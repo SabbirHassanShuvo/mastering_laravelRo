@@ -186,8 +186,9 @@ class GarageSalesController extends Controller
                     if ($itemImages && is_array($itemImages)) {
                         foreach ($itemImages as $imageFile) {
                             if ($imageFile->isValid()) {
-                                $path = $imageFile->store('garage/items', 'public');
-                                $item->images()->create(['photo' => $path]);
+                                 // Consistently use 'garage_items' to match API and accessor logic
+                                 $path = $imageFile->store('garage_items', 'public');
+                                 $item->images()->create(['photo' => $path]);
                             }
                         }
                     }
@@ -351,7 +352,18 @@ class GarageSalesController extends Controller
     public function destroy($id)
     {
         try {
-            $sale = GarageSale::findOrFail($id);
+            $sale = GarageSale::with('items.images')->findOrFail($id);
+            
+            // Delete all item images
+            foreach ($sale->items as $item) {
+                foreach ($item->images as $image) {
+                    $photoPath = $image->getRawOriginal('photo');
+                    if ($photoPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($photoPath)) {
+                        \Illuminate\Support\Facades\Storage::disk('public')->delete($photoPath);
+                    }
+                }
+            }
+            
             $sale->delete();
 
             return response()->json(['success' => true, 'message' => 'Garage Sale deleted successfully.']);
