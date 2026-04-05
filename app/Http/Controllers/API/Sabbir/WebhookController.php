@@ -239,6 +239,8 @@ class WebhookController extends Controller
                     'title'          => $itemData['title'],
                     'price'          => $itemData['price'] ?? null,
                     'description'    => $itemData['description'] ?? null,
+                    'item_condition' => $itemData['condition'] ?? null,
+                    'category_id'    => $itemData['category_id'] ?? null,
                 ]);
                 
                 $images = $itemData['images'] ?? [];
@@ -287,6 +289,8 @@ class WebhookController extends Controller
                         'title'          => $itemData['title'],
                         'price'          => $itemData['price'] ?? null,
                         'description'    => $itemData['description'] ?? null,
+                        'item_condition' => $itemData['condition'] ?? null,
+                        'category_id'    => $itemData['category_id'] ?? null,
                     ]);
                     foreach ($itemData['images'] ?? [] as $img) {
                         GarageItemImage::create(['garage_item_id' => $item->id, 'photo' => $img]);

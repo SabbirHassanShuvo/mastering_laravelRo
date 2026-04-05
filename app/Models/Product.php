@@ -107,6 +107,13 @@ class Product extends Model
             }
             return asset('storage/' . ltrim($value, '/'));
         }
+
+        $photo = $this->photos()->first();
+        if ($photo && $photo->photo_url) {
+            // photo_url already has an accessor logic that resolves to full path
+            return $photo->photo_url;
+        }
+
         return null;
     }
 }

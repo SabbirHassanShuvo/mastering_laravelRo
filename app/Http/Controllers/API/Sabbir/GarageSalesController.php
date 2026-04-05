@@ -108,6 +108,11 @@ class GarageSalesController extends Controller
             'sale_start_date'  => 'required|date',
             'items'            => 'required|array|min:1',
             'items.*.title'    => 'required|string|max:255',
+            'items.*.condition'   => 'nullable|string|max:255',
+            'items.*.item_condition' => 'nullable|string|max:255',
+            'items.*.item_conditon'  => 'nullable|string|max:255',
+            'items.*.category_id' => 'nullable|exists:categories,id',
+            'items.*.category'    => 'nullable|exists:categories,id',
         ]);
 
         if ($validator->fails()) {
@@ -163,6 +168,8 @@ class GarageSalesController extends Controller
                 'title'       => $itemData['title'],
                 'price'       => $itemData['price'] ?? null,
                 'description' => $itemData['description'] ?? null,
+                'condition'   => $itemData['condition'] ?? $itemData['item_condition'] ?? $itemData['item_conditon'] ?? $request->input('item_condition') ?? $request->input('condition') ?? null,
+                'category_id' => $itemData['category_id'] ?? $itemData['category'] ?? $request->input('category_id') ?? null,
                 'images'      => array_values(array_unique($images)),
             ];
         }
@@ -309,6 +316,11 @@ class GarageSalesController extends Controller
             'longitude' => 'nullable|numeric',
             'items' => 'required|array|min:1',
             'items.*.title' => 'required|string|max:255',
+            'items.*.condition'   => 'nullable|string|max:255',
+            'items.*.item_condition' => 'nullable|string|max:255',
+            'items.*.item_conditon'  => 'nullable|string|max:255',
+            'items.*.category_id' => 'nullable|exists:categories,id',
+            'items.*.category'    => 'nullable|exists:categories,id',
         ]);
 
         if ($validator->fails()) {
@@ -352,7 +364,9 @@ class GarageSalesController extends Controller
             $item = $garage->items()->create([
                 'title' => $itemData['title'],
                 'price' => $itemData['price'] ?? null,
-                'description' => $itemData['description'] ?? null
+                'description' => $itemData['description'] ?? null,
+                'condition' => $itemData['condition'] ?? $itemData['item_condition'] ?? $itemData['item_conditon'] ?? $request->input('item_condition') ?? $request->input('condition') ?? null,
+                'category_id' => $itemData['category_id'] ?? $itemData['category'] ?? $request->input('category_id') ?? null,
             ]);
 
             if (!empty($itemData['images'])) {
@@ -538,7 +552,7 @@ class GarageSalesController extends Controller
     // Garage Item Details
     public function garageItemShow($id)
     {
-         $item = GarageItem::with(['garageSale.user', 'images'])->findOrFail($id);
+         $item = GarageItem::with(['garageSale.user', 'images', 'category'])->findOrFail($id);
 
         return response()->json([
             'success' => true,

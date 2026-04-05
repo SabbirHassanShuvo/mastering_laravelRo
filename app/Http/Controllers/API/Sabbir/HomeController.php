@@ -225,6 +225,7 @@ class HomeController extends Controller
     {
         $item = GarageItem::with([
             'images:id,garage_item_id,photo',
+            'category',
             'garageSale:id,user_id,event_title,latitude,longitude',
             'garageSale.user:id,name',
             'garageSale.user.profile:id,user_id,user_name,avatar'
@@ -244,7 +245,8 @@ class HomeController extends Controller
                 'title' => $item->title,
                 'price' => $item->price,
                 'description' => $item->description,
-                'condition' => $item->condition ?? null,
+                'condition' => $item->item_condition ?? null,
+                'category' => $item->category ?? null,
                 'images' => $item->images,
                 'garage' => [
                     'id' => $item->garageSale->id,
