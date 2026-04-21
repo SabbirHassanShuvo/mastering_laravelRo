@@ -94,6 +94,8 @@ Route::group(['middleware' => 'auth:api','prefix' => 'garage'], function ($route
 // Webhook Route (No Auth Required)
 Route::post('/webhooks/stripe', [WebhookController::class, 'handleWebhook']);
 
+// Product details for sharing
+Route::post('/productsDetailsShare/{id}', [HomeController::class, 'productDetail']);
 // Hoeme page
 Route::group(['middleware' => 'auth:api','prefix' => 'home'], function ($router) {
     Route::post('/allproducts', [HomeController::class, 'homeProducts']);
