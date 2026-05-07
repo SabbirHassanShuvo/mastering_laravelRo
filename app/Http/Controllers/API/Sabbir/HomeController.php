@@ -123,6 +123,135 @@ class HomeController extends Controller
         ]);
     }
 
+    // Garage sale details for sharing
+    public function garageDetailShare(Request $request, $id)
+    {
+        // Validate incoming location
+        $validator = Validator::make($request->all(), [
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+        ], [
+            'latitude.required' => 'Latitude is required.',
+            'latitude.numeric' => 'Latitude must be a valid number.',
+            'longitude.required' => 'Longitude is required.',
+            'longitude.numeric' => 'Longitude must be a valid number.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first()
+            ], 422);
+        }
+
+        $lat = $request->latitude;
+        $lng = $request->longitude;
+
+        $garage = GarageSale::selectRaw("
+                garage_sales.*,
+                (
+                    6371 * acos(
+                        LEAST(1.0,
+                            cos(radians(?))
+                            * cos(radians(latitude))
+                            * cos(radians(longitude) - radians(?))
+                            + sin(radians(?))
+                            * sin(radians(latitude))
+                        )
+                    )
+                ) AS distance
+            ", [$lat, $lng, $lat])
+            ->with([
+                'items.images', 
+                'user:id,name',
+                    'user.profile:id,user_id,user_name,avatar'
+            ])
+            ->where('id', $id)
+            ->first();
+
+        if (!$garage) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Garage not found'
+            ], 404);
+        }
+
+        // Hide redundant garageSale relationship inside each item
+        $garage->items->each(function ($item) {
+            $item->makeHidden('garageSale');
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $garage
+        ]);
+    }
+
+    // Garage item details for sharing
+    public function garageItemDetailShare(Request $request, $id)
+    {
+        // Validate incoming location
+        $validator = Validator::make($request->all(), [
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+        ], [
+            'latitude.required' => 'Latitude is required.',
+            'latitude.numeric' => 'Latitude must be a valid number.',
+            'longitude.required' => 'Longitude is required.',
+            'longitude.numeric' => 'Longitude must be a valid number.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first()
+            ], 422);
+        }
+
+        $lat = $request->latitude;
+        $lng = $request->longitude;
+
+        $item = GarageItem::selectRaw("
+                garage_items.*,
+                (
+                    6371 * acos(
+                        LEAST(1.0,
+                            cos(radians(?))
+                            * cos(radians(garage_sales.latitude))
+                            * cos(radians(garage_sales.longitude) - radians(?))
+                            + sin(radians(?))
+                            * sin(radians(garage_sales.latitude))
+                        )
+                    )
+                ) AS distance
+            ", [$lat, $lng, $lat])
+            ->join('garage_sales', 'garage_items.garage_sale_id', '=', 'garage_sales.id')
+            ->with([
+                'images',
+                'category',
+                'garageSale.user' => function ($query) {
+                    $query->select('id', 'name', 'status');
+                },
+                'garageSale.user.profile' => function ($query) {
+                    $query->select('id', 'user_id', 'avatar', 'user_name');
+                }
+            ])
+            ->where('garage_items.id', $id)
+            ->first();
+
+        if (!$item) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Item not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $item
+        ]);
+    }
+
     // Fetch products based on user's location and category
     public function homeGarageSales(Request $request)
     {
@@ -164,6 +293,12 @@ class HomeController extends Controller
         ->orderByDesc('is_spotlighted')
         ->orderBy('distance')
         ->get();
+
+        $garageSales = $garageSales->each(function ($garage) {
+            $garage->items->each(function ($item) {
+                $item->makeHidden('garageSale');
+            });
+        });
 
         return response()->json([
             'success' => true,
@@ -213,6 +348,11 @@ class HomeController extends Controller
                 'message' => 'Garage not found'
             ], 404);
         }
+
+        // Hide redundant garageSale relationship inside each item
+        $garage->items->each(function ($item) {
+            $item->makeHidden('garageSale');
+        });
 
         return response()->json([
             'success' => true,

@@ -26,6 +26,7 @@ Route::group(['middleware' => 'auth:api','prefix' => 'products'], function ($rou
     Route::get('/all-product', [ProductsController::class, 'index']);
     Route::get('/{id}/edit', [ProductsController::class,'edit']);
     Route::post('/update/{id}', [ProductsController::class,'update']);
+    Route::post('/photo/{id}', [ProductsController::class, 'deletePhoto']);
 
     // Listing management routes
     Route::post('/relist/{id}', [ProductsController::class, 'relist']);
@@ -96,6 +97,9 @@ Route::post('/webhooks/stripe', [WebhookController::class, 'handleWebhook']);
 
 // Product details for sharing
 Route::post('/productsDetailsShare/{id}', [HomeController::class, 'productDetail']);
+Route::post('/garageDetailsShare/{id}', [HomeController::class, 'garageDetailShare']);
+Route::post('/garageItemDetailsShare/{id}', [HomeController::class, 'garageItemDetailShare']);
+Route::get('/profile/public/{id}', [ProfileController::class, 'getUserPublicProfile']);
 // Hoeme page
 Route::group(['middleware' => 'auth:api','prefix' => 'home'], function ($router) {
     Route::post('/allproducts', [HomeController::class, 'homeProducts']);

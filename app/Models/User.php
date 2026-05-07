@@ -98,6 +98,14 @@ class User extends Authenticatable implements JWTSubject
     }
 
 
+    public function getAvatarAttribute($value): string | null
+    {
+        if (request()->is('api/*') && !empty($value)) {
+            return url($value);
+        }
+        return $value;
+    }
+
     public function profile(){
         return $this->hasOne(Profile::class);
     }
@@ -150,5 +158,10 @@ class User extends Authenticatable implements JWTSubject
         if ($this->is_verified !== $isEligible) {
             $this->update(['is_verified' => $isEligible]);
         }
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class, 'reviewee_id');
     }
 }

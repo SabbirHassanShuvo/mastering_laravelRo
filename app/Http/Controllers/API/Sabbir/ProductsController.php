@@ -7,6 +7,7 @@ use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Matche;
 use App\Models\Product;
+use App\Models\ProductPhoto;
 use App\Models\ProductLove;
 use App\Models\SavedProduct;
 use App\Models\Category;
@@ -203,6 +204,33 @@ class ProductsController extends Controller
             'status' => 'success',
             'message' => 'Product updated successfully!',
             'data' => $product->load('user', 'category', 'photos')
+        ], 200);
+    }
+
+    // Delete a specific product photo by its
+    public function deletePhoto($photoId)
+    {
+        $photo = ProductPhoto::find($photoId);
+
+        if (!$photo) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Photo not found.'
+            ], 404);
+        }
+
+        // Delete from storage using raw path to bypass accessor
+        $oldPath = $photo->getRawOriginal('photo_url');
+        if ($oldPath && Storage::disk('public')->exists($oldPath)) {
+            Storage::disk('public')->delete($oldPath);
+        }
+
+        // Delete from database
+        $photo->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Photo deleted successfully.'
         ], 200);
     }
 
@@ -473,6 +501,9 @@ class ProductsController extends Controller
                 'description' => $product->description,
                 'latitude' => $product->pickup_latitude,
                 'longitude' => $product->pickup_longitude,
+                'product_type' => $product->product_type,
+                'is_urgent' => (bool)$product->is_urgent,
+                'urgent_pickup_notes' => $product->urgent_pickup_notes,
             ]
         ]);
     }

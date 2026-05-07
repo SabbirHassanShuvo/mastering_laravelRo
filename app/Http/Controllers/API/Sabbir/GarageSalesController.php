@@ -552,7 +552,7 @@ class GarageSalesController extends Controller
     // Garage Item Details
     public function garageItemShow($id)
     {
-         $item = GarageItem::with(['garageSale.user', 'images', 'category'])->findOrFail($id);
+         $item = GarageItem::with(['garageSale.user.profile', 'images', 'category'])->findOrFail($id);
 
         return response()->json([
             'success' => true,

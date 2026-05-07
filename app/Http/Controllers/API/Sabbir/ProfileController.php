@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API\Sabbir;
 use App\Http\Controllers\Controller;
 use App\Models\GarageSale;
 use App\Models\Product;
+use App\Models\User;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -233,4 +234,40 @@ public function getUserNotifications()
         'data' => $notifications
     ]);
 }
+
+    public function getUserPublicProfile($id)
+    {
+        $user = User::with(['profile', 'reviews.reviewer.profile'])->find($id);
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'avatar' => optional($user->profile)->avatar,
+                'latitude' => $user->latitude,
+                'longitude' => $user->longitude,
+                'member_since' => $user->created_at->format('M Y'),
+                'average_rating' => $user->reviews->avg('rating'),
+                'total_reviews' => $user->reviews->count(),
+                'reviews' => $user->reviews->map(function ($review) {
+                    return [
+                        'id' => $review->id,
+                        'rating' => $review->rating,
+                        'comment' => $review->comment,
+                        'reviewer_name' => optional($review->reviewer)->name,
+                        'reviewer_avatar' => optional(optional($review->reviewer)->profile)->avatar,
+                        'created_at' => $review->created_at->diffForHumans()
+                    ];
+                })
+            ]
+        ]);
+    }
 }

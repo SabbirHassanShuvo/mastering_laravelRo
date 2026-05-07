@@ -13,6 +13,13 @@ class GarageItem extends Model
 
     protected $fillable = ['garage_sale_id','title','price','description', 'item_condition', 'category_id'];
 
+    protected $appends = ['user_image'];
+
+    public function getUserImageAttribute()
+    {
+        return optional($this->garageSale->user->profile)->avatar ?? optional($this->garageSale->user->profile)->profile_image;
+    }
+
     public function garageSale() {
         return $this->belongsTo(GarageSale::class);
     }
